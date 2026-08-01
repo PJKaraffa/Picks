@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Weekly NFL staff pick'em application">
+  <title>Weekly NFL Picks</title>
+  <style>
+:root {
+  --background: #08111f;
+  --background-soft: #0d1a2d;
+  --surface: #111f33;
+  --surface-raised: #172842;
+  --surface-dark: #07101d;
+  --border: #29405f;
+  --border-strong: #3a577d;
+  --text: #f8fafc;
+  --text-muted: #9fb0c7;
+  --primary: #34d399;
+  --primary-hover: #10b981;
+  --primary-text: #022c22;
+  --accent: #60a5fa;
+  --danger: #fb7185;
+  --warning: #fbbf24;
+  --success: #4ade80;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  --radius-small: 10px;
+  --radius-medium: 16px;
+  --radius-large: 24px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 32px;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(52, 211, 153, 0.13), transparent 28rem),
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.12), transparent 30rem),
+    var(--background);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 0;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.app-shell {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+}
+
+.login-card {
+  width: min(460px, 100%);
+  margin: clamp(40px, 9vh, 100px) auto;
+  padding: clamp(28px, 5vw, 44px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+  background: rgba(17, 31, 51, 0.94);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+}
+
+.brand-mark {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 22px;
+  place-items: center;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: 18px;
+  background: rgba(52, 211, 153, 0.12);
+  font-size: 34px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+.login-card h1,
+.top-bar h1 {
+  margin-bottom: 8px;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1.05;
+}
+
+.subtitle,
+.user-display,
+.week-instructions,
+.tiebreak-card p {
+  color: var(--text-muted);
+}
+
+.login-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.login-form label,
+.tiebreak-card label {
+  font-weight: 750;
+}
+
+input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  outline: none;
+  background: var(--surface-dark);
+  color: var(--text);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.login-form input {
+  margin-bottom: 10px;
+  padding: 14px 15px;
+}
+
+input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.15);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 12px 20px;
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  font-weight: 800;
+  transition: transform 160ms ease, background 160ms ease, opacity 160ms ease;
+}
+
+.button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.button-primary {
+  background: var(--primary);
+  color: var(--primary-text);
+}
+
+.button-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.button-secondary {
+  border: 1px solid var(--border-strong);
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.button-secondary:hover:not(:disabled) {
+  background: #203653;
+}
+
+.button-large {
+  min-height: 56px;
+  padding-inline: 28px;
+  font-size: 1.05rem;
+}
+
+.top-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.user-display {
+  margin-bottom: 0;
+}
+
+.week-panel,
+.progress-panel,
+.tiebreak-card,
+.message-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+  background: rgba(17, 31, 51, 0.92);
+}
+
+.week-panel {
+  display: grid;
+  grid-template-columns: 130px 130px 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 18px;
+}
+
+.week-stat {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--surface-dark);
+}
+
+.week-stat-label {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.week-stat strong {
+  font-size: 1.55rem;
+}
+
+.week-instructions {
+  display: flex;
+  align-items: center;
+  padding-inline: 12px;
+  line-height: 1.55;
+}
+
+.progress-panel {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 20px;
+  padding: 16px 18px;
+}
+
+.progress-label {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.progress-track {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-dark);
+}
+
+.progress-bar {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  transition: width 220ms ease;
+}
+
+.games-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.game-card {
+  display: grid;
+  grid-template-columns: 70px minmax(220px, 1fr) minmax(360px, 1.2fr);
+  align-items: center;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+  background: rgba(17, 31, 51, 0.92);
+  transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.game-card:focus-within,
+.game-card.has-pick {
+  border-color: rgba(52, 211, 153, 0.65);
+}
+
+.game-number {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--surface-dark);
+  color: var(--text-muted);
+  font-weight: 850;
+}
+
+.matchup-label {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.matchup-title {
+  margin: 4px 0 0;
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+  line-height: 1.3;
+}
+
+.pick-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pick-choice {
+  position: relative;
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-dark);
+  cursor: pointer;
+  text-align: center;
+  font-weight: 750;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.pick-choice:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-raised);
+  transform: translateY(-1px);
+}
+
+.pick-choice input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.pick-choice:has(input:checked) {
+  border-color: var(--primary);
+  background: rgba(52, 211, 153, 0.16);
+  color: #d1fae5;
+  box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.28);
+}
+
+.tiebreak-card {
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  align-items: center;
+  gap: 24px;
+  margin-top: 22px;
+  padding: 22px;
+}
+
+.tiebreak-card p:last-child {
+  margin-bottom: 0;
+}
+
+.tiebreak-card input {
+  padding: 16px;
+  text-align: center;
+  font-size: 1.35rem;
+  font-weight: 850;
+}
+
+.action-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.message {
+  min-height: 24px;
+  margin: 16px 0 0;
+  font-weight: 750;
+}
+
+.message-panel {
+  display: none;
+  padding: 15px 18px;
+}
+
+.message-panel:not(:empty) {
+  display: block;
+}
+
+.message.info {
+  color: var(--warning);
+}
+
+.message.success {
+  color: var(--success);
+}
+
+.message.error {
+  color: var(--danger);
+}
+
+@media (max-width: 900px) {
+  body {
+    padding: 20px;
+  }
+
+  .game-card {
+    grid-template-columns: 54px 1fr;
+  }
+
+  .pick-options {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  body {
+    padding: 14px;
+  }
+
+  .top-bar,
+  .week-panel,
+  .progress-panel,
+  .tiebreak-card,
+  .action-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .top-bar {
+    align-items: stretch;
+  }
+
+  .top-bar .button {
+    width: 100%;
+  }
+
+  .week-instructions {
+    padding: 4px;
+  }
+
+  .game-card {
+    grid-template-columns: 1fr;
+  }
+
+  .game-number {
+    width: 42px;
+    height: 42px;
+  }
+
+  .pick-options {
+    grid-column: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .tiebreak-card input {
+    width: 100%;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <section id="loginView" class="login-card" aria-labelledby="loginTitle">
+      <div class="brand-mark" aria-hidden="true">🏈</div>
+      <p class="eyebrow">Staff Pick'em</p>
+      <h1 id="loginTitle">Weekly NFL Picks</h1>
+      <p class="subtitle">Sign in to make or review your selections.</p>
+
+      <form id="loginForm" class="login-form" novalidate>
+        <label for="email">Email address</label>
+        <input id="email" name="email" type="email" autocomplete="username" placeholder="name@example.com" required>
+
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+
+        <button id="loginButton" class="button button-primary" type="submit">
+          <span>Sign In</span>
+        </button>
+      </form>
+
+      <p id="loginMessage" class="message" role="status" aria-live="polite"></p>
+    </section>
+
+    <section id="picksView" class="page hidden" aria-labelledby="pageTitle">
+      <header class="top-bar">
+        <div>
+          <p class="eyebrow">Staff Pick'em</p>
+          <h1 id="pageTitle">Weekly NFL Picks</h1>
+          <p id="userDisplay" class="user-display"></p>
+        </div>
+        <button id="logoutButton" class="button button-secondary" type="button">Sign Out</button>
+      </header>
+
+      <section class="week-panel" aria-label="Current pick period">
+        <div class="week-stat">
+          <span class="week-stat-label">Season</span>
+          <strong id="seasonDisplay">2026</strong>
+        </div>
+        <div class="week-stat">
+          <span class="week-stat-label">Week</span>
+          <strong id="weekDisplay">1</strong>
+        </div>
+        <div class="week-instructions">
+          Select one winner for every matchup, then enter the total-points tiebreaker.
+        </div>
+      </section>
+
+      <section class="progress-panel" aria-label="Pick progress">
+        <div>
+          <span class="progress-label">Pick progress</span>
+          <strong id="progressText">0 of 16 selected</strong>
+        </div>
+        <div class="progress-track" aria-hidden="true">
+          <div id="progressBar" class="progress-bar"></div>
+        </div>
+      </section>
+
+      <form id="picksForm" novalidate>
+        <div id="games" class="games-grid"></div>
+
+        <section class="tiebreak-card">
+          <div>
+            <p class="eyebrow">Final Game Tiebreaker</p>
+            <label for="tiebreak">Predicted total points</label>
+            <p>Enter the combined score for the designated tiebreaker game.</p>
+          </div>
+          <input id="tiebreak" name="tiebreak" type="number" min="0" max="200" inputmode="numeric" placeholder="47" required>
+        </section>
+
+        <div class="action-bar">
+          <button id="submitButton" class="button button-primary button-large" type="submit">Save My Picks</button>
+          <button id="exportButton" class="button button-secondary button-large" type="button">Export My Picks</button>
+        </div>
+      </form>
+
+      <p id="pickMessage" class="message message-panel" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+const SUPABASE_URL = "https://izxvdpkqdasfemopjmeu.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_9F6Tt_qADFq0vYWuBGwtTg_XvnyrWI4";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+
+const APP_SETTINGS = Object.freeze({
+  season: 2026,
+  weekNumber: 1,
+  tableName: "weekly_picks",
+  maxTiebreakPoints: 200
+});
+
+
+const GAMES = Object.freeze([
+  { id: 1, away: "New England", home: "Seattle" },
+  { id: 2, away: "San Francisco", home: "Rams" },
+  { id: 3, away: "Tampa Bay", home: "Cincinnati" },
+  { id: 4, away: "New Orleans", home: "Detroit" },
+  { id: 5, away: "Jets", home: "Tennessee" },
+  { id: 6, away: "Baltimore", home: "Indianapolis" },
+  { id: 7, away: "Atlanta", home: "Pittsburgh" },
+  { id: 8, away: "Chicago", home: "Carolina" },
+  { id: 9, away: "Cleveland", home: "Jacksonville" },
+  { id: 10, away: "Buffalo", home: "Houston" },
+  { id: 11, away: "Miami", home: "Raiders" },
+  { id: 12, away: "Green Bay", home: "Minnesota" },
+  { id: 13, away: "Washington", home: "Eagles" },
+  { id: 14, away: "Arizona", home: "Chargers" },
+  { id: 15, away: "Dallas", home: "Giants" },
+  { id: 16, away: "Denver", home: "Chiefs" }
+]);
+
+
+function getElement(id) {
+  const element = document.getElementById(id);
+
+  if (!element) {
+    throw new Error(`Required element not found: #${id}`);
+  }
+
+  return element;
+}
+
+function setMessage(element, text = "", type = "info") {
+  element.textContent = text;
+  element.classList.remove("info", "success", "error");
+
+  if (text) {
+    element.classList.add(type);
+  }
+}
+
+function setButtonBusy(button, isBusy, busyText) {
+  if (!button.dataset.defaultText) {
+    button.dataset.defaultText = button.textContent.trim();
+  }
+
+  button.disabled = isBusy;
+  button.textContent = isBusy ? busyText : button.dataset.defaultText;
+}
+
+function csvEscape(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  const text = String(value);
+  const requiresQuotes = /[",\n]/.test(text);
+
+  return requiresQuotes
+    ? `"${text.replaceAll('"', '""')}"`
+    : text;
+}
+
+function downloadTextFile(filename, text, mimeType = "text/plain;charset=utf-8") {
+  const blob = new Blob([text], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+
+async function getCurrentUser() {
+  const { data, error } = await supabaseClient.auth.getUser();
+
+  if (error) {
+    throw error;
+  }
+
+  return data.user;
+}
+
+async function loginUser(email, password) {
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return data.user;
+}
+
+async function logoutUser() {
+  const { error } = await supabaseClient.auth.signOut();
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function getActiveSession() {
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  if (error) {
+    throw error;
+  }
+
+  return data.session;
+}
+
+
+function buildGames() {
+  const gamesContainer = getElement("games");
+
+  gamesContainer.innerHTML = GAMES.map((game, index) => `
+    <article class="game-card" data-game-id="${game.id}">
+      <div class="game-number">${index + 1}</div>
+
+      <div class="matchup">
+        <p class="matchup-label">Game ${index + 1}</p>
+        <h2 class="matchup-title">${game.away} <span aria-hidden="true">@</span> ${game.home}</h2>
+      </div>
+
+      <div class="pick-options" role="radiogroup" aria-label="${game.away} at ${game.home}">
+        ${createPickChoice(game.id, game.away)}
+        ${createPickChoice(game.id, game.home)}
+      </div>
+    </article>
+  `).join("");
+
+  gamesContainer.addEventListener("change", handlePickChange);
+  updatePickProgress();
+}
+
+function createPickChoice(gameId, teamName) {
+  return `
+    <label class="pick-choice">
+      <input type="radio" name="game_${gameId}" value="${teamName}">
+      <span>${teamName}</span>
+    </label>
+  `;
+}
+
+function handlePickChange(event) {
+  if (!event.target.matches('input[type="radio"]')) {
+    return;
+  }
+
+  const gameCard = event.target.closest(".game-card");
+  gameCard?.classList.add("has-pick");
+  updatePickProgress();
+}
+
+function updatePickProgress() {
+  const selectedCount = document.querySelectorAll('#games input[type="radio"]:checked').length;
+  const totalGames = GAMES.length;
+  const percentComplete = totalGames === 0 ? 0 : (selectedCount / totalGames) * 100;
+
+  getElement("progressText").textContent = `${selectedCount} of ${totalGames} selected`;
+  getElement("progressBar").style.width = `${percentComplete}%`;
+}
+
+function getSelectedPicks() {
+  const picks = {};
+
+  for (const game of GAMES) {
+    const selected = document.querySelector(`input[name="game_${game.id}"]:checked`);
+
+    if (!selected) {
+      return null;
+    }
+
+    picks[game.id] = {
+      game_id: game.id,
+      away: game.away,
+      home: game.home,
+      pick: selected.value
+    };
+  }
+
+  return picks;
+}
+
+function validateTiebreak(value) {
+  const number = Number(value);
+
+  return Number.isInteger(number)
+    && number >= 0
+    && number <= APP_SETTINGS.maxTiebreakPoints;
+}
+
+async function saveMyPicks() {
+  const picks = getSelectedPicks();
+  const tiebreakInput = getElement("tiebreak");
+  const tiebreakValue = tiebreakInput.value.trim();
+
+  if (!picks) {
+    throw new Error("Please select a winner for every game.");
+  }
+
+  if (!validateTiebreak(tiebreakValue)) {
+    throw new Error(`Enter a whole-number tiebreaker from 0 to ${APP_SETTINGS.maxTiebreakPoints}.`);
+  }
+
+  const user = await getCurrentUser();
+
+  if (!user) {
+    throw new Error("Your session has expired. Please sign in again.");
+  }
+
+  const timestamp = new Date().toISOString();
+  const record = {
+    user_id: user.id,
+    email: user.email,
+    display_name: user.user_metadata?.full_name || user.email,
+    season: APP_SETTINGS.season,
+    week_number: APP_SETTINGS.weekNumber,
+    picks,
+    tiebreak: Number(tiebreakValue),
+    submitted_at: timestamp,
+    updated_at: timestamp
+  };
+
+  const { error } = await supabaseClient
+    .from(APP_SETTINGS.tableName)
+    .upsert(record, { onConflict: "user_id,season,week_number" });
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function fetchMyPicks() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return null;
+  }
+
+  const { data, error } = await supabaseClient
+    .from(APP_SETTINGS.tableName)
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("season", APP_SETTINGS.season)
+    .eq("week_number", APP_SETTINGS.weekNumber)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+function applySavedPicks(record) {
+  document.querySelectorAll('#games input[type="radio"]').forEach(input => {
+    input.checked = false;
+  });
+
+  document.querySelectorAll(".game-card").forEach(card => {
+    card.classList.remove("has-pick");
+  });
+
+  if (!record) {
+    getElement("tiebreak").value = "";
+    updatePickProgress();
+    return;
+  }
+
+  Object.values(record.picks || {}).forEach(pickRecord => {
+    const radio = Array.from(document.querySelectorAll(`input[name="game_${pickRecord.game_id}"]`))
+      .find(input => input.value === pickRecord.pick);
+
+    if (radio) {
+      radio.checked = true;
+      radio.closest(".game-card")?.classList.add("has-pick");
+    }
+  });
+
+  getElement("tiebreak").value = record.tiebreak ?? "";
+  updatePickProgress();
+}
+
+function exportPicksToCsv(record) {
+  if (!record) {
+    throw new Error("No saved picks were found for this week.");
+  }
+
+  const rows = [
+    ["Season", "Week", "Email", "Game", "Away", "Home", "Pick"]
+  ];
+
+  Object.keys(record.picks)
+    .sort((a, b) => Number(a) - Number(b))
+    .forEach(gameId => {
+      const pick = record.picks[gameId];
+
+      rows.push([
+        record.season,
+        record.week_number,
+        record.email,
+        gameId,
+        pick.away,
+        pick.home,
+        pick.pick
+      ]);
+    });
+
+  rows.push([]);
+  rows.push(["Tie Breaker", record.tiebreak]);
+
+  const csv = rows
+    .map(row => row.map(csvEscape).join(","))
+    .join("\n");
+
+  downloadTextFile(
+    `nfl_picks_${record.season}_week_${record.week_number}.csv`,
+    csv,
+    "text/csv;charset=utf-8"
+  );
+}
+
+
+const ui = {};
+
+window.addEventListener("DOMContentLoaded", initializeApp);
+
+async function initializeApp() {
+  cacheUi();
+  applySettingsToPage();
+  buildGames();
+  attachEventListeners();
+
+  try {
+    const session = await getActiveSession();
+
+    if (session) {
+      await showPicksView(session.user);
+    } else {
+      showLoginView();
+    }
+  } catch (error) {
+    console.error("Initialization error:", error);
+    showLoginView();
+    setMessage(ui.loginMessage, error.message || "Unable to start the application.", "error");
+  }
+}
+
+function cacheUi() {
+  ui.loginView = getElement("loginView");
+  ui.picksView = getElement("picksView");
+  ui.loginForm = getElement("loginForm");
+  ui.picksForm = getElement("picksForm");
+  ui.email = getElement("email");
+  ui.password = getElement("password");
+  ui.loginButton = getElement("loginButton");
+  ui.logoutButton = getElement("logoutButton");
+  ui.submitButton = getElement("submitButton");
+  ui.exportButton = getElement("exportButton");
+  ui.loginMessage = getElement("loginMessage");
+  ui.pickMessage = getElement("pickMessage");
+  ui.userDisplay = getElement("userDisplay");
+}
+
+function attachEventListeners() {
+  ui.loginForm.addEventListener("submit", handleLogin);
+  ui.logoutButton.addEventListener("click", handleLogout);
+  ui.picksForm.addEventListener("submit", handleSubmitPicks);
+  ui.exportButton.addEventListener("click", handleExportPicks);
+}
+
+function applySettingsToPage() {
+  getElement("seasonDisplay").textContent = APP_SETTINGS.season;
+  getElement("weekDisplay").textContent = APP_SETTINGS.weekNumber;
+  getElement("tiebreak").max = APP_SETTINGS.maxTiebreakPoints;
+}
+
+function showLoginView() {
+  ui.loginView.classList.remove("hidden");
+  ui.picksView.classList.add("hidden");
+  ui.password.value = "";
+  ui.email.focus();
+}
+
+async function showPicksView(user) {
+  ui.loginView.classList.add("hidden");
+  ui.picksView.classList.remove("hidden");
+  ui.userDisplay.textContent = user.user_metadata?.full_name || user.email || "Signed-in user";
+  setMessage(ui.loginMessage);
+
+  await loadSavedPicks();
+}
+
+async function handleLogin(event) {
+  event.preventDefault();
+  setMessage(ui.loginMessage);
+
+  const email = ui.email.value.trim();
+  const password = ui.password.value;
+
+  if (!email || !password) {
+    setMessage(ui.loginMessage, "Enter both your email and password.", "error");
+    return;
+  }
+
+  setButtonBusy(ui.loginButton, true, "Signing In...");
+
+  try {
+    const user = await loginUser(email, password);
+    await showPicksView(user);
+  } catch (error) {
+    console.error("Login error:", error);
+    setMessage(ui.loginMessage, error.message || "Unable to sign in.", "error");
+  } finally {
+    setButtonBusy(ui.loginButton, false);
+  }
+}
+
+async function handleLogout() {
+  setButtonBusy(ui.logoutButton, true, "Signing Out...");
+
+  try {
+    await logoutUser();
+    applySavedPicks(null);
+    setMessage(ui.pickMessage);
+    showLoginView();
+  } catch (error) {
+    console.error("Logout error:", error);
+    setMessage(ui.pickMessage, error.message || "Unable to sign out.", "error");
+  } finally {
+    setButtonBusy(ui.logoutButton, false);
+  }
+}
+
+async function loadSavedPicks() {
+  setMessage(ui.pickMessage, "Loading your saved picks...", "info");
+
+  try {
+    const record = await fetchMyPicks();
+    applySavedPicks(record);
+
+    setMessage(
+      ui.pickMessage,
+      record ? "Your saved picks were loaded." : "No picks are saved yet for this week.",
+      record ? "success" : "info"
+    );
+  } catch (error) {
+    console.error("Load picks error:", error);
+    setMessage(ui.pickMessage, error.message || "Unable to load your picks.", "error");
+  }
+}
+
+async function handleSubmitPicks(event) {
+  event.preventDefault();
+  setMessage(ui.pickMessage);
+  setButtonBusy(ui.submitButton, true, "Saving Picks...");
+
+  try {
+    await saveMyPicks();
+    setMessage(ui.pickMessage, "Your picks were saved successfully.", "success");
+  } catch (error) {
+    console.error("Save picks error:", error);
+    setMessage(ui.pickMessage, error.message || "Unable to save your picks.", "error");
+  } finally {
+    setButtonBusy(ui.submitButton, false);
+  }
+}
+
+async function handleExportPicks() {
+  setMessage(ui.pickMessage);
+  setButtonBusy(ui.exportButton, true, "Preparing Export...");
+
+  try {
+    const record = await fetchMyPicks();
+    exportPicksToCsv(record);
+    setMessage(ui.pickMessage, "Your CSV export has been created.", "success");
+  } catch (error) {
+    console.error("Export picks error:", error);
+    setMessage(ui.pickMessage, error.message || "Unable to export your picks.", "error");
+  } finally {
+    setButtonBusy(ui.exportButton, false);
+  }
+}
+
+  </script>
+</body>
+</html>
