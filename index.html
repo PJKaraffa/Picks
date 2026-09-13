@@ -56,7 +56,6 @@ button {
   margin:auto;
 }
 
-.card,
 .login-card,
 .week-panel,
 .progress-panel,
@@ -203,10 +202,14 @@ select:focus {
   line-height:1.5;
 }
 
-.tabs {
+.tabs,
+.board-actions {
   display:flex;
   flex-wrap:wrap;
   gap:10px;
+}
+
+.tabs {
   margin-bottom:20px;
 }
 
@@ -493,6 +496,11 @@ select:focus {
   .pick-options {
     grid-template-columns:1fr;
   }
+
+  .section-heading {
+    align-items:stretch;
+    flex-direction:column;
+  }
 }
 </style>
 </head>
@@ -500,7 +508,6 @@ select:focus {
 <body>
 <main class="app-shell">
 
-  <!-- LOGIN -->
   <section id="loginView" class="login-card">
     <div class="brand-mark">🏈</div>
     <p class="eyebrow">Staff Pick'em</p>
@@ -522,7 +529,6 @@ select:focus {
     <p id="loginMessage" class="message"></p>
   </section>
 
-  <!-- MAIN APPLICATION -->
   <section id="appView" class="hidden">
 
     <header class="top-bar">
@@ -567,7 +573,6 @@ select:focus {
       </button>
     </nav>
 
-    <!-- MY PICKS -->
     <section id="myPicksPage">
 
       <section class="progress-panel">
@@ -615,7 +620,6 @@ select:focus {
       <p id="pickMessage" class="message"></p>
     </section>
 
-    <!-- EVERYONE'S PICKS -->
     <section id="allPicksPage" class="hidden">
 
       <div class="section-heading">
@@ -624,9 +628,15 @@ select:focus {
           <h2>Everyone's Picks</h2>
         </div>
 
-        <button id="refreshBoardButton" class="button button-secondary" type="button">
-          Refresh
-        </button>
+        <div class="board-actions">
+          <button id="refreshBoardButton" class="button button-secondary" type="button">
+            Refresh
+          </button>
+
+          <button id="exportAllButton" class="button button-primary" type="button">
+            Export All Picks
+          </button>
+        </div>
       </div>
 
       <p id="allPicksMessage" class="message"></p>
@@ -634,7 +644,6 @@ select:focus {
       <div id="picksTableContainer" class="table-wrap"></div>
     </section>
 
-    <!-- ADMIN RESULTS -->
     <section id="resultsPage" class="hidden">
 
       <div class="admin-card">
@@ -642,8 +651,8 @@ select:focus {
         <h2>Enter Official Winners</h2>
 
         <p class="subtitle">
-          Select winners as games finish. Correct picks will turn green and
-          incorrect picks will turn red.
+          Select winners as games finish. Correct picks turn green and
+          incorrect picks turn red.
         </p>
 
         <form id="resultsForm">
@@ -689,65 +698,72 @@ const supabaseClient = window.supabase.createClient(
 );
 
 const SETTINGS = {
-  season: 2026,
-  week: 1,
-  picksTable: "weekly_picks",
-  resultsTable: "weekly_results",
-  profilesTable: "profiles"
+  season:2026,
+  week:1,
+  picksTable:"weekly_picks",
+  resultsTable:"weekly_results",
+  profilesTable:"profiles"
 };
 
 const GAMES = [
-  {id:1, away:"New England", home:"Seattle"},
-  {id:2, away:"San Francisco", home:"Rams"},
-  {id:3, away:"Tampa Bay", home:"Cincinnati"},
-  {id:4, away:"New Orleans", home:"Detroit"},
-  {id:5, away:"Jets", home:"Tennessee"},
-  {id:6, away:"Baltimore", home:"Indianapolis"},
-  {id:7, away:"Atlanta", home:"Pittsburgh"},
-  {id:8, away:"Chicago", home:"Carolina"},
-  {id:9, away:"Cleveland", home:"Jacksonville"},
-  {id:10, away:"Buffalo", home:"Houston"},
-  {id:11, away:"Miami", home:"Raiders"},
-  {id:12, away:"Green Bay", home:"Minnesota"},
-  {id:13, away:"Washington", home:"Eagles"},
-  {id:14, away:"Arizona", home:"Chargers"},
-  {id:15, away:"Dallas", home:"Giants"},
-  {id:16, away:"Denver", home:"Chiefs"}
+  {id:1,away:"New England",home:"Seattle"},
+  {id:2,away:"San Francisco",home:"Rams"},
+  {id:3,away:"Tampa Bay",home:"Cincinnati"},
+  {id:4,away:"New Orleans",home:"Detroit"},
+  {id:5,away:"Jets",home:"Tennessee"},
+  {id:6,away:"Baltimore",home:"Indianapolis"},
+  {id:7,away:"Atlanta",home:"Pittsburgh"},
+  {id:8,away:"Chicago",home:"Carolina"},
+  {id:9,away:"Cleveland",home:"Jacksonville"},
+  {id:10,away:"Buffalo",home:"Houston"},
+  {id:11,away:"Miami",home:"Raiders"},
+  {id:12,away:"Green Bay",home:"Minnesota"},
+  {id:13,away:"Washington",home:"Eagles"},
+  {id:14,away:"Arizona",home:"Chargers"},
+  {id:15,away:"Dallas",home:"Giants"},
+  {id:16,away:"Denver",home:"Chiefs"}
 ];
 
 const ui = {};
 
-document.addEventListener("DOMContentLoaded", initializeApp);
+document.addEventListener("DOMContentLoaded",initializeApp);
 
-function getElement(id) {
-  return document.getElementById(id);
+function byId(id) {
+  const element = document.getElementById(id);
+
+  if (!element) {
+    throw new Error(`Element not found: ${id}`);
+  }
+
+  return element;
 }
 
-function setMessage(element, text = "", type = "info") {
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function setMessage(element,text="",type="info") {
   element.textContent = text;
-  element.classList.remove("info", "success", "error");
+  element.classList.remove("info","success","error");
 
   if (text) {
     element.classList.add(type);
   }
 }
 
-function setBusy(button, busy, text) {
-  if (!button.dataset.normalText) {
-    button.dataset.normalText = button.textContent.trim();
+function setBusy(button,busy,busyText) {
+  if (!button.dataset.defaultText) {
+    button.dataset.defaultText = button.textContent.trim();
   }
 
   button.disabled = busy;
-  button.textContent = busy ? text : button.dataset.normalText;
-}
-
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+  button.textContent =
+    busy ? busyText : button.dataset.defaultText;
 }
 
 async function initializeApp() {
@@ -760,80 +776,118 @@ async function initializeApp() {
   ui.weekDisplay.textContent = SETTINGS.week;
 
   try {
-    const {data, error} = await supabaseClient.auth.getSession();
+    const {data,error} =
+      await supabaseClient.auth.getSession();
 
     if (error) {
       throw error;
     }
 
     if (data.session) {
-      await showApp(data.session.user);
+      await showApplication(data.session.user);
     } else {
       showLogin();
     }
   } catch (error) {
     showLogin();
-    setMessage(ui.loginMessage, error.message, "error");
+    setMessage(
+      ui.loginMessage,
+      error.message || "Unable to start.",
+      "error"
+    );
   }
 }
 
 function cacheUi() {
-  ui.loginView = getElement("loginView");
-  ui.appView = getElement("appView");
-  ui.loginForm = getElement("loginForm");
-  ui.email = getElement("email");
-  ui.password = getElement("password");
-  ui.loginButton = getElement("loginButton");
-  ui.loginMessage = getElement("loginMessage");
-  ui.logoutButton = getElement("logoutButton");
-  ui.userDisplay = getElement("userDisplay");
+  ui.loginView = byId("loginView");
+  ui.appView = byId("appView");
+  ui.loginForm = byId("loginForm");
+  ui.email = byId("email");
+  ui.password = byId("password");
+  ui.loginButton = byId("loginButton");
+  ui.loginMessage = byId("loginMessage");
+  ui.logoutButton = byId("logoutButton");
+  ui.userDisplay = byId("userDisplay");
 
-  ui.myPicksTab = getElement("myPicksTab");
-  ui.allPicksTab = getElement("allPicksTab");
-  ui.resultsTab = getElement("resultsTab");
+  ui.seasonDisplay = byId("seasonDisplay");
+  ui.weekDisplay = byId("weekDisplay");
 
-  ui.myPicksPage = getElement("myPicksPage");
-  ui.allPicksPage = getElement("allPicksPage");
-  ui.resultsPage = getElement("resultsPage");
+  ui.myPicksTab = byId("myPicksTab");
+  ui.allPicksTab = byId("allPicksTab");
+  ui.resultsTab = byId("resultsTab");
 
-  ui.seasonDisplay = getElement("seasonDisplay");
-  ui.weekDisplay = getElement("weekDisplay");
-  ui.games = getElement("games");
-  ui.progressText = getElement("progressText");
-  ui.progressBar = getElement("progressBar");
-  ui.picksForm = getElement("picksForm");
-  ui.tiebreak = getElement("tiebreak");
-  ui.savePicksButton = getElement("savePicksButton");
-  ui.exportButton = getElement("exportButton");
-  ui.pickMessage = getElement("pickMessage");
+  ui.myPicksPage = byId("myPicksPage");
+  ui.allPicksPage = byId("allPicksPage");
+  ui.resultsPage = byId("resultsPage");
 
-  ui.refreshBoardButton = getElement("refreshBoardButton");
-  ui.allPicksMessage = getElement("allPicksMessage");
-  ui.picksTableContainer = getElement("picksTableContainer");
+  ui.games = byId("games");
+  ui.progressText = byId("progressText");
+  ui.progressBar = byId("progressBar");
+  ui.picksForm = byId("picksForm");
+  ui.tiebreak = byId("tiebreak");
+  ui.savePicksButton = byId("savePicksButton");
+  ui.exportButton = byId("exportButton");
+  ui.pickMessage = byId("pickMessage");
 
-  ui.resultsForm = getElement("resultsForm");
-  ui.resultsGrid = getElement("resultsGrid");
-  ui.actualTiebreak = getElement("actualTiebreak");
-  ui.saveResultsButton = getElement("saveResultsButton");
-  ui.resultsMessage = getElement("resultsMessage");
+  ui.refreshBoardButton = byId("refreshBoardButton");
+  ui.exportAllButton = byId("exportAllButton");
+  ui.allPicksMessage = byId("allPicksMessage");
+  ui.picksTableContainer = byId("picksTableContainer");
+
+  ui.resultsForm = byId("resultsForm");
+  ui.resultsGrid = byId("resultsGrid");
+  ui.actualTiebreak = byId("actualTiebreak");
+  ui.saveResultsButton = byId("saveResultsButton");
+  ui.resultsMessage = byId("resultsMessage");
 }
 
 function attachEvents() {
-  ui.loginForm.addEventListener("submit", handleLogin);
-  ui.logoutButton.addEventListener("click", handleLogout);
-  ui.picksForm.addEventListener("submit", handleSavePicks);
-  ui.exportButton.addEventListener("click", exportMyPicks);
+  ui.loginForm.addEventListener("submit",handleLogin);
+  ui.logoutButton.addEventListener("click",handleLogout);
 
-  ui.myPicksTab.addEventListener("click", () => switchPage("mine"));
-  ui.allPicksTab.addEventListener("click", () => switchPage("all"));
-  ui.resultsTab.addEventListener("click", () => switchPage("results"));
+  ui.myPicksTab.addEventListener(
+    "click",
+    () => switchPage("mine")
+  );
 
-  ui.refreshBoardButton.addEventListener("click", loadAllPicks);
-  ui.resultsForm.addEventListener("submit", handleSaveResults);
+  ui.allPicksTab.addEventListener(
+    "click",
+    () => switchPage("all")
+  );
+
+  ui.resultsTab.addEventListener(
+    "click",
+    () => switchPage("results")
+  );
+
+  ui.picksForm.addEventListener(
+    "submit",
+    handleSavePicks
+  );
+
+  ui.exportButton.addEventListener(
+    "click",
+    exportMyPicks
+  );
+
+  ui.refreshBoardButton.addEventListener(
+    "click",
+    loadEveryonePicks
+  );
+
+  ui.exportAllButton.addEventListener(
+    "click",
+    exportAllPicks
+  );
+
+  ui.resultsForm.addEventListener(
+    "submit",
+    handleSaveResults
+  );
 }
 
 function buildGames() {
-  ui.games.innerHTML = GAMES.map((game, index) => `
+  ui.games.innerHTML = GAMES.map((game,index) => `
     <article class="game-card" data-game="${game.id}">
       <div class="game-number">${index + 1}</div>
 
@@ -845,15 +899,18 @@ function buildGames() {
       </div>
 
       <div class="pick-options">
-        ${pickOption(game.id, game.away)}
-        ${pickOption(game.id, game.home)}
+        ${createPickOption(game.id,game.away)}
+        ${createPickOption(game.id,game.home)}
       </div>
     </article>
   `).join("");
 
-  ui.games.addEventListener("change", event => {
+  ui.games.addEventListener("change",event => {
     if (event.target.matches('input[type="radio"]')) {
-      event.target.closest(".game-card").classList.add("has-pick");
+      event.target
+        .closest(".game-card")
+        .classList.add("has-pick");
+
       updateProgress();
     }
   });
@@ -861,7 +918,7 @@ function buildGames() {
   updateProgress();
 }
 
-function pickOption(gameId, team) {
+function createPickOption(gameId,team) {
   return `
     <label class="pick-choice">
       <input
@@ -875,7 +932,7 @@ function pickOption(gameId, team) {
 }
 
 function buildResultsForm() {
-  ui.resultsGrid.innerHTML = GAMES.map((game, index) => `
+  ui.resultsGrid.innerHTML = GAMES.map((game,index) => `
     <label class="result-row">
       <span>
         <strong>Game ${index + 1}</strong><br>
@@ -897,7 +954,9 @@ function buildResultsForm() {
 
 function updateProgress() {
   const selected =
-    document.querySelectorAll('#games input[type="radio"]:checked').length;
+    document.querySelectorAll(
+      '#games input[type="radio"]:checked'
+    ).length;
 
   ui.progressText.textContent =
     `${selected} of ${GAMES.length} selected`;
@@ -907,20 +966,42 @@ function updateProgress() {
 }
 
 function switchPage(page) {
-  ui.myPicksPage.classList.toggle("hidden", page !== "mine");
-  ui.allPicksPage.classList.toggle("hidden", page !== "all");
-  ui.resultsPage.classList.toggle("hidden", page !== "results");
+  ui.myPicksPage.classList.toggle(
+    "hidden",
+    page !== "mine"
+  );
 
-  ui.myPicksTab.classList.toggle("active", page === "mine");
-  ui.allPicksTab.classList.toggle("active", page === "all");
-  ui.resultsTab.classList.toggle("active", page === "results");
+  ui.allPicksPage.classList.toggle(
+    "hidden",
+    page !== "all"
+  );
+
+  ui.resultsPage.classList.toggle(
+    "hidden",
+    page !== "results"
+  );
+
+  ui.myPicksTab.classList.toggle(
+    "active",
+    page === "mine"
+  );
+
+  ui.allPicksTab.classList.toggle(
+    "active",
+    page === "all"
+  );
+
+  ui.resultsTab.classList.toggle(
+    "active",
+    page === "results"
+  );
 
   if (page === "all") {
-    loadAllPicks();
+    loadEveryonePicks();
   }
 
   if (page === "results") {
-    loadResults();
+    loadOfficialResults();
   }
 }
 
@@ -930,16 +1011,22 @@ function showLogin() {
   ui.password.value = "";
 }
 
-async function showApp(user) {
+async function showApplication(user) {
   ui.loginView.classList.add("hidden");
   ui.appView.classList.remove("hidden");
 
   ui.userDisplay.textContent =
-    user.user_metadata?.full_name || user.email;
+    user.user_metadata?.full_name ||
+    user.email ||
+    "Signed-in user";
 
   try {
-    const role = await getMyRole(user.id);
-    ui.resultsTab.classList.toggle("hidden", role !== "admin");
+    const role = await getUserRole(user.id);
+
+    ui.resultsTab.classList.toggle(
+      "hidden",
+      role !== "admin"
+    );
   } catch (error) {
     console.error(error);
     ui.resultsTab.classList.add("hidden");
@@ -951,21 +1038,22 @@ async function showApp(user) {
 
 async function handleLogin(event) {
   event.preventDefault();
+
   setMessage(ui.loginMessage);
-  setBusy(ui.loginButton, true, "Signing In...");
+  setBusy(ui.loginButton,true,"Signing In...");
 
   try {
-    const {data, error} =
+    const {data,error} =
       await supabaseClient.auth.signInWithPassword({
-        email: ui.email.value.trim(),
-        password: ui.password.value
+        email:ui.email.value.trim(),
+        password:ui.password.value
       });
 
     if (error) {
       throw error;
     }
 
-    await showApp(data.user);
+    await showApplication(data.user);
   } catch (error) {
     setMessage(
       ui.loginMessage,
@@ -973,15 +1061,16 @@ async function handleLogin(event) {
       "error"
     );
   } finally {
-    setBusy(ui.loginButton, false);
+    setBusy(ui.loginButton,false);
   }
 }
 
 async function handleLogout() {
-  setBusy(ui.logoutButton, true, "Signing Out...");
+  setBusy(ui.logoutButton,true,"Signing Out...");
 
   try {
-    const {error} = await supabaseClient.auth.signOut();
+    const {error} =
+      await supabaseClient.auth.signOut();
 
     if (error) {
       throw error;
@@ -989,14 +1078,19 @@ async function handleLogout() {
 
     showLogin();
   } catch (error) {
-    setMessage(ui.pickMessage, error.message, "error");
+    setMessage(
+      ui.pickMessage,
+      error.message || "Unable to sign out.",
+      "error"
+    );
   } finally {
-    setBusy(ui.logoutButton, false);
+    setBusy(ui.logoutButton,false);
   }
 }
 
 async function getCurrentUser() {
-  const {data, error} = await supabaseClient.auth.getUser();
+  const {data,error} =
+    await supabaseClient.auth.getUser();
 
   if (error) {
     throw error;
@@ -1005,11 +1099,11 @@ async function getCurrentUser() {
   return data.user;
 }
 
-async function getMyRole(userId) {
-  const {data, error} = await supabaseClient
+async function getUserRole(userId) {
+  const {data,error} = await supabaseClient
     .from(SETTINGS.profilesTable)
     .select("role")
-    .eq("id", userId)
+    .eq("id",userId)
     .maybeSingle();
 
   if (error) {
@@ -1019,14 +1113,13 @@ async function getMyRole(userId) {
   return data?.role || "user";
 }
 
-function collectPicks() {
+function collectSelectedPicks() {
   const picks = {};
 
   for (const game of GAMES) {
-    const selected =
-      document.querySelector(
-        `input[name="game_${game.id}"]:checked`
-      );
+    const selected = document.querySelector(
+      `input[name="game_${game.id}"]:checked`
+    );
 
     if (!selected) {
       return null;
@@ -1045,14 +1138,21 @@ function collectPicks() {
 
 async function handleSavePicks(event) {
   event.preventDefault();
-  setBusy(ui.savePicksButton, true, "Saving Picks...");
+
   setMessage(ui.pickMessage);
+  setBusy(
+    ui.savePicksButton,
+    true,
+    "Saving Picks..."
+  );
 
   try {
-    const picks = collectPicks();
+    const picks = collectSelectedPicks();
 
     if (!picks) {
-      throw new Error("Please select a winner for every game.");
+      throw new Error(
+        "Please select a winner for every game."
+      );
     }
 
     const tiebreak = Number(ui.tiebreak.value);
@@ -1069,27 +1169,29 @@ async function handleSavePicks(event) {
     }
 
     const user = await getCurrentUser();
-
-    const timestamp = new Date().toISOString();
+    const now = new Date().toISOString();
 
     const record = {
       user_id:user.id,
       email:user.email,
       display_name:
-        user.user_metadata?.full_name || user.email,
+        user.user_metadata?.full_name ||
+        user.email,
       season:SETTINGS.season,
       week_number:SETTINGS.week,
       picks,
       tiebreak,
-      submitted_at:timestamp,
-      updated_at:timestamp
+      submitted_at:now,
+      updated_at:now
     };
 
     const {error} = await supabaseClient
       .from(SETTINGS.picksTable)
       .upsert(
         record,
-        {onConflict:"user_id,season,week_number"}
+        {
+          onConflict:"user_id,season,week_number"
+        }
       );
 
     if (error) {
@@ -1102,21 +1204,25 @@ async function handleSavePicks(event) {
       "success"
     );
   } catch (error) {
-    setMessage(ui.pickMessage, error.message, "error");
+    setMessage(
+      ui.pickMessage,
+      error.message || "Unable to save picks.",
+      "error"
+    );
   } finally {
-    setBusy(ui.savePicksButton, false);
+    setBusy(ui.savePicksButton,false);
   }
 }
 
 async function fetchMyPicks() {
   const user = await getCurrentUser();
 
-  const {data, error} = await supabaseClient
+  const {data,error} = await supabaseClient
     .from(SETTINGS.picksTable)
     .select("*")
-    .eq("user_id", user.id)
-    .eq("season", SETTINGS.season)
-    .eq("week_number", SETTINGS.week)
+    .eq("user_id",user.id)
+    .eq("season",SETTINGS.season)
+    .eq("week_number",SETTINGS.week)
     .maybeSingle();
 
   if (error) {
@@ -1127,21 +1233,42 @@ async function fetchMyPicks() {
 }
 
 async function loadMyPicks() {
-  setMessage(ui.pickMessage, "Loading your picks...", "info");
+  setMessage(
+    ui.pickMessage,
+    "Loading your saved picks...",
+    "info"
+  );
 
   try {
     const record = await fetchMyPicks();
 
     document
       .querySelectorAll('#games input[type="radio"]')
-      .forEach(input => input.checked = false);
+      .forEach(input => {
+        input.checked = false;
+      });
 
     document
       .querySelectorAll(".game-card")
-      .forEach(card => card.classList.remove("has-pick"));
+      .forEach(card => {
+        card.classList.remove("has-pick");
+      });
 
-    if (record) {
-      Object.values(record.picks || {}).forEach(savedPick => {
+    if (!record) {
+      ui.tiebreak.value = "";
+      updateProgress();
+
+      setMessage(
+        ui.pickMessage,
+        "No picks are saved yet for this week.",
+        "info"
+      );
+
+      return;
+    }
+
+    Object.values(record.picks || {})
+      .forEach(savedPick => {
         const radios = document.querySelectorAll(
           `input[name="game_${savedPick.game_id}"]`
         );
@@ -1153,42 +1280,39 @@ async function loadMyPicks() {
 
         if (matchingRadio) {
           matchingRadio.checked = true;
+
           matchingRadio
             .closest(".game-card")
             .classList.add("has-pick");
         }
       });
 
-      ui.tiebreak.value = record.tiebreak ?? "";
-
-      setMessage(
-        ui.pickMessage,
-        "Your saved picks were loaded.",
-        "success"
-      );
-    } else {
-      ui.tiebreak.value = "";
-
-      setMessage(
-        ui.pickMessage,
-        "No picks are saved yet for this week.",
-        "info"
-      );
-    }
-
+    ui.tiebreak.value = record.tiebreak ?? "";
     updateProgress();
+
+    setMessage(
+      ui.pickMessage,
+      "Your saved picks were loaded.",
+      "success"
+    );
   } catch (error) {
-    setMessage(ui.pickMessage, error.message, "error");
+    setMessage(
+      ui.pickMessage,
+      error.message || "Unable to load picks.",
+      "error"
+    );
   }
 }
 
-async function fetchAllPicks() {
-  const {data, error} = await supabaseClient
+async function fetchEveryonePicks() {
+  const {data,error} = await supabaseClient
     .from(SETTINGS.picksTable)
-    .select("display_name,email,picks,tiebreak")
-    .eq("season", SETTINGS.season)
-    .eq("week_number", SETTINGS.week)
-    .order("display_name", {ascending:true});
+    .select(
+      "display_name,email,picks,tiebreak,submitted_at,updated_at"
+    )
+    .eq("season",SETTINGS.season)
+    .eq("week_number",SETTINGS.week)
+    .order("display_name",{ascending:true});
 
   if (error) {
     throw error;
@@ -1197,12 +1321,12 @@ async function fetchAllPicks() {
   return data || [];
 }
 
-async function fetchResults() {
-  const {data, error} = await supabaseClient
+async function fetchOfficialResults() {
+  const {data,error} = await supabaseClient
     .from(SETTINGS.resultsTable)
     .select("winners,actual_tiebreak")
-    .eq("season", SETTINGS.season)
-    .eq("week_number", SETTINGS.week)
+    .eq("season",SETTINGS.season)
+    .eq("week_number",SETTINGS.week)
     .maybeSingle();
 
   if (error) {
@@ -1215,7 +1339,7 @@ async function fetchResults() {
   };
 }
 
-async function loadAllPicks() {
+async function loadEveryonePicks() {
   setMessage(
     ui.allPicksMessage,
     "Loading everyone's picks...",
@@ -1223,12 +1347,12 @@ async function loadAllPicks() {
   );
 
   try {
-    const [records, results] = await Promise.all([
-      fetchAllPicks(),
-      fetchResults()
+    const [records,results] = await Promise.all([
+      fetchEveryonePicks(),
+      fetchOfficialResults()
     ]);
 
-    renderPicksTable(records, results);
+    renderEveryoneTable(records,results);
 
     setMessage(
       ui.allPicksMessage,
@@ -1236,11 +1360,15 @@ async function loadAllPicks() {
       "success"
     );
   } catch (error) {
-    setMessage(ui.allPicksMessage, error.message, "error");
+    setMessage(
+      ui.allPicksMessage,
+      error.message || "Unable to load the weekly board.",
+      "error"
+    );
   }
 }
 
-function renderPicksTable(records, results) {
+function renderEveryoneTable(records,results) {
   if (!records.length) {
     ui.picksTableContainer.innerHTML =
       "<p style='padding:20px'>No picks have been submitted.</p>";
@@ -1258,7 +1386,7 @@ function renderPicksTable(records, results) {
         G${game.id}
         ${
           winner
-            ? `<span class="winner-badge">${escapeHtml(winner)}</span>`
+            ? `<span class="winner-badge">${escapeHtml(shortTeam(winner))}</span>`
             : ""
         }
       </th>
@@ -1266,19 +1394,24 @@ function renderPicksTable(records, results) {
   }).join("");
 
   const rows = records.map(record => {
+    let correctCount = 0;
+
     const cells = GAMES.map(game => {
       const pick =
         record.picks?.[game.id]?.pick || "—";
 
-      const winner = winners[game.id];
+      const winner =
+        winners[game.id] || "";
 
       let className = "";
 
       if (winner) {
-        className =
-          pick === winner
-            ? "pick-correct"
-            : "pick-wrong";
+        if (pick === winner) {
+          className = "pick-correct";
+          correctCount++;
+        } else {
+          className = "pick-wrong";
+        }
       }
 
       return `
@@ -1297,6 +1430,7 @@ function renderPicksTable(records, results) {
       <tr>
         <td>${escapeHtml(name)}</td>
         ${cells}
+        <td><strong>${correctCount}</strong></td>
         <td>${record.tiebreak ?? "—"}</td>
       </tr>
     `;
@@ -1308,6 +1442,7 @@ function renderPicksTable(records, results) {
         <tr>
           <th>Player</th>
           ${headers}
+          <th>Correct</th>
           <th>Tiebreak</th>
         </tr>
       </thead>
@@ -1334,7 +1469,7 @@ function shortTeam(team) {
     : team;
 }
 
-async function loadResults() {
+async function loadOfficialResults() {
   setMessage(
     ui.resultsMessage,
     "Loading official results...",
@@ -1342,7 +1477,7 @@ async function loadResults() {
   );
 
   try {
-    const results = await fetchResults();
+    const results = await fetchOfficialResults();
 
     for (const game of GAMES) {
       const select = document.querySelector(
@@ -1362,19 +1497,24 @@ async function loadResults() {
       "success"
     );
   } catch (error) {
-    setMessage(ui.resultsMessage, error.message, "error");
+    setMessage(
+      ui.resultsMessage,
+      error.message || "Unable to load results.",
+      "error"
+    );
   }
 }
 
 async function handleSaveResults(event) {
   event.preventDefault();
+
+  setMessage(ui.resultsMessage);
+
   setBusy(
     ui.saveResultsButton,
     true,
     "Saving Winners..."
   );
-
-  setMessage(ui.resultsMessage);
 
   try {
     const user = await getCurrentUser();
@@ -1391,12 +1531,12 @@ async function handleSaveResults(event) {
       ui.actualTiebreak.value.trim();
 
     if (actualValue !== "") {
-      const actualNumber = Number(actualValue);
+      const number = Number(actualValue);
 
       if (
-        !Number.isInteger(actualNumber) ||
-        actualNumber < 0 ||
-        actualNumber > 200
+        !Number.isInteger(number) ||
+        number < 0 ||
+        number > 200
       ) {
         throw new Error(
           "The actual tiebreaker must be from 0 to 200."
@@ -1433,21 +1573,31 @@ async function handleSaveResults(event) {
       "success"
     );
   } catch (error) {
-    setMessage(ui.resultsMessage, error.message, "error");
+    setMessage(
+      ui.resultsMessage,
+      error.message || "Unable to save winners.",
+      "error"
+    );
   } finally {
-    setBusy(ui.saveResultsButton, false);
+    setBusy(ui.saveResultsButton,false);
   }
 }
 
 async function exportMyPicks() {
-  setBusy(ui.exportButton, true, "Creating CSV...");
+  setMessage(ui.pickMessage);
+
+  setBusy(
+    ui.exportButton,
+    true,
+    "Creating CSV..."
+  );
 
   try {
     const record = await fetchMyPicks();
 
     if (!record) {
       throw new Error(
-        "You must save your picks before exporting."
+        "Save your picks before exporting."
       );
     }
 
@@ -1456,44 +1606,23 @@ async function exportMyPicks() {
     ];
 
     GAMES.forEach(game => {
-      const pick = record.picks?.[game.id];
-
       rows.push([
         record.season,
         record.week_number,
         game.id,
         game.away,
         game.home,
-        pick?.pick || ""
+        record.picks?.[game.id]?.pick || ""
       ]);
     });
 
     rows.push([]);
     rows.push(["Tiebreaker",record.tiebreak]);
 
-    const csv = rows
-      .map(row =>
-        row.map(csvValue).join(",")
-      )
-      .join("\n");
-
-    const blob = new Blob(
-      [csv],
-      {type:"text/csv;charset=utf-8"}
+    downloadCsv(
+      `NFL_Picks_${record.season}_Week_${record.week_number}.csv`,
+      rows
     );
-
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download =
-      `NFL_Picks_${record.season}_Week_${record.week_number}.csv`;
-
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    URL.revokeObjectURL(url);
 
     setMessage(
       ui.pickMessage,
@@ -1501,14 +1630,163 @@ async function exportMyPicks() {
       "success"
     );
   } catch (error) {
-    setMessage(ui.pickMessage, error.message, "error");
+    setMessage(
+      ui.pickMessage,
+      error.message || "Unable to export picks.",
+      "error"
+    );
   } finally {
-    setBusy(ui.exportButton, false);
+    setBusy(ui.exportButton,false);
   }
 }
 
+async function exportAllPicks() {
+  setMessage(ui.allPicksMessage);
+
+  setBusy(
+    ui.exportAllButton,
+    true,
+    "Creating Export..."
+  );
+
+  try {
+    const [records,results] = await Promise.all([
+      fetchEveryonePicks(),
+      fetchOfficialResults()
+    ]);
+
+    if (!records.length) {
+      throw new Error(
+        "There are no submitted picks to export."
+      );
+    }
+
+    const winners =
+      results.winners || {};
+
+    const rows = [[
+      "Name",
+      "Email",
+      ...GAMES.map(game =>
+        `Game ${game.id}: ${game.away} @ ${game.home}`
+      ),
+      ...GAMES.map(game =>
+        `Game ${game.id} Winner`
+      ),
+      "Correct Picks",
+      "Games Completed",
+      "Tiebreaker Pick",
+      "Actual Tiebreaker",
+      "Submitted At"
+    ]];
+
+    records.forEach(record => {
+      let correct = 0;
+      let completed = 0;
+
+      const playerPicks = GAMES.map(game => {
+        const pick =
+          record.picks?.[game.id]?.pick || "";
+
+        const winner =
+          winners[game.id] || "";
+
+        if (winner) {
+          completed++;
+
+          if (pick === winner) {
+            correct++;
+          }
+        }
+
+        return pick;
+      });
+
+      const officialWinners =
+        GAMES.map(game =>
+          winners[game.id] || ""
+        );
+
+      rows.push([
+        record.display_name ||
+          record.email ||
+          "Unknown",
+
+        record.email || "",
+
+        ...playerPicks,
+        ...officialWinners,
+
+        correct,
+        completed,
+
+        record.tiebreak ?? "",
+        results.actual_tiebreak ?? "",
+
+        record.submitted_at
+          ? new Date(record.submitted_at)
+              .toLocaleString()
+          : ""
+      ]);
+    });
+
+    downloadCsv(
+      `All_NFL_Picks_${SETTINGS.season}_Week_${SETTINGS.week}.csv`,
+      rows
+    );
+
+    setMessage(
+      ui.allPicksMessage,
+      `${records.length} participant records were exported.`,
+      "success"
+    );
+  } catch (error) {
+    setMessage(
+      ui.allPicksMessage,
+      error.message || "Unable to export all picks.",
+      "error"
+    );
+  } finally {
+    setBusy(ui.exportAllButton,false);
+  }
+}
+
+function downloadCsv(filename,rows) {
+  const csv = rows
+    .map(row =>
+      row.map(csvValue).join(",")
+    )
+    .join("\n");
+
+  const blob = new Blob(
+    [csv],
+    {
+      type:"text/csv;charset=utf-8"
+    }
+  );
+
+  const url =
+    URL.createObjectURL(blob);
+
+  const link =
+    document.createElement("a");
+
+  link.href = url;
+  link.download = filename;
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  window.setTimeout(
+    () => URL.revokeObjectURL(url),
+    0
+  );
+}
+
 function csvValue(value) {
-  const text = String(value ?? "");
+  const text =
+    String(value ?? "");
 
   return /[",\n]/.test(text)
     ? `"${text.replaceAll('"','""')}"`
