@@ -1,1096 +1,913 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Weekly NFL Picks</title>
-
-<style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Weekly NFL staff pick'em application">
+  <title>Weekly NFL Picks</title>
+  <style>
 :root {
-  --background:#08111f;
-  --surface:#111f33;
-  --surface-dark:#07101d;
-  --surface-raised:#172842;
-  --border:#29405f;
-  --text:#f8fafc;
-  --muted:#9fb0c7;
-  --primary:#34d399;
-  --accent:#60a5fa;
-  --danger:#fb7185;
-  --warning:#fbbf24;
-  --success:#4ade80;
+  --background: #08111f;
+  --background-soft: #0d1a2d;
+  --surface: #111f33;
+  --surface-raised: #172842;
+  --surface-dark: #07101d;
+  --border: #29405f;
+  --border-strong: #3a577d;
+  --text: #f8fafc;
+  --text-muted: #9fb0c7;
+  --primary: #34d399;
+  --primary-hover: #10b981;
+  --primary-text: #022c22;
+  --accent: #60a5fa;
+  --danger: #fb7185;
+  --warning: #fbbf24;
+  --success: #4ade80;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  --radius-small: 10px;
+  --radius-medium: 16px;
+  --radius-large: 24px;
 }
 
 * {
-  box-sizing:border-box;
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
 }
 
 body {
-  margin:0;
-  min-height:100vh;
-  padding:28px;
-  font-family:Arial,Helvetica,sans-serif;
-  color:var(--text);
+  margin: 0;
+  min-height: 100vh;
+  padding: 32px;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text);
   background:
-    radial-gradient(circle at top left,rgba(52,211,153,.13),transparent 28rem),
-    radial-gradient(circle at top right,rgba(96,165,250,.12),transparent 30rem),
+    radial-gradient(circle at top left, rgba(52, 211, 153, 0.13), transparent 28rem),
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.12), transparent 30rem),
     var(--background);
 }
 
 button,
-input,
-select {
-  font:inherit;
+input {
+  font: inherit;
 }
 
 button {
-  border:0;
+  border: 0;
 }
 
 .hidden {
-  display:none !important;
+  display: none !important;
 }
 
 .app-shell {
-  width:min(1200px,100%);
-  margin:auto;
-}
-
-.login-card,
-.week-panel,
-.progress-panel,
-.game-card,
-.tiebreak-card,
-.admin-card,
-.table-wrap {
-  border:1px solid var(--border);
-  border-radius:16px;
-  background:rgba(17,31,51,.94);
+  width: min(1180px, 100%);
+  margin: 0 auto;
 }
 
 .login-card {
-  width:min(460px,100%);
-  margin:60px auto;
-  padding:36px;
+  width: min(460px, 100%);
+  margin: clamp(40px, 9vh, 100px) auto;
+  padding: clamp(28px, 5vw, 44px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+  background: rgba(17, 31, 51, 0.94);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
 }
 
 .brand-mark {
-  display:grid;
-  width:64px;
-  height:64px;
-  margin-bottom:20px;
-  place-items:center;
-  border-radius:18px;
-  background:rgba(52,211,153,.14);
-  font-size:34px;
+  display: grid;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 22px;
+  place-items: center;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: 18px;
+  background: rgba(52, 211, 153, 0.12);
+  font-size: 34px;
 }
 
 .eyebrow {
-  margin:0 0 8px;
-  color:var(--primary);
-  font-size:.78rem;
-  font-weight:800;
-  letter-spacing:.14em;
-  text-transform:uppercase;
+  margin: 0 0 8px;
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 h1,
 h2,
 p {
-  margin-top:0;
+  margin-top: 0;
+}
+
+.login-card h1,
+.top-bar h1 {
+  margin-bottom: 8px;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1.05;
 }
 
 .subtitle,
 .user-display,
-.instructions {
-  color:var(--muted);
+.week-instructions,
+.tiebreak-card p {
+  color: var(--text-muted);
 }
 
 .login-form {
-  display:grid;
-  gap:10px;
-  margin-top:25px;
+  display: grid;
+  gap: 10px;
+  margin-top: 28px;
 }
 
-input,
-select {
-  width:100%;
-  padding:13px;
-  border:1px solid var(--border);
-  border-radius:10px;
-  outline:none;
-  background:var(--surface-dark);
-  color:var(--text);
+.login-form label,
+.tiebreak-card label {
+  font-weight: 750;
 }
 
-input:focus,
-select:focus {
-  border-color:var(--accent);
-  box-shadow:0 0 0 4px rgba(96,165,250,.15);
+input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  outline: none;
+  background: var(--surface-dark);
+  color: var(--text);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.login-form input {
+  margin-bottom: 10px;
+  padding: 14px 15px;
+}
+
+input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.15);
 }
 
 .button {
-  display:inline-flex;
-  min-height:46px;
-  align-items:center;
-  justify-content:center;
-  padding:12px 20px;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 12px 20px;
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  font-weight: 800;
+  transition: transform 160ms ease, background 160ms ease, opacity 160ms ease;
+}
+
+.button:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 .button:disabled {
-  cursor:wait;
-  opacity:.65;
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .button-primary {
-  background:var(--primary);
-  color:#022c22;
+  background: var(--primary);
+  color: var(--primary-text);
+}
+
+.button-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
 }
 
 .button-secondary {
-  border:1px solid #3a577d;
-  background:var(--surface-raised);
-  color:var(--text);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.button-secondary:hover:not(:disabled) {
+  background: #203653;
 }
 
 .button-large {
-  min-height:55px;
-  font-size:1.05rem;
+  min-height: 56px;
+  padding-inline: 28px;
+  font-size: 1.05rem;
 }
 
 .top-bar {
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:20px;
-  margin-bottom:20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.user-display {
+  margin-bottom: 0;
+}
+
+.week-panel,
+.progress-panel,
+.tiebreak-card,
+.message-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+  background: rgba(17, 31, 51, 0.92);
 }
 
 .week-panel {
-  display:grid;
-  grid-template-columns:130px 130px 1fr;
-  gap:15px;
-  margin-bottom:16px;
-  padding:18px;
+  display: grid;
+  grid-template-columns: 130px 130px 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 18px;
 }
 
 .week-stat {
-  padding:14px;
-  border-radius:12px;
-  background:var(--surface-dark);
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--surface-dark);
 }
 
-.week-label {
-  display:block;
-  margin-bottom:4px;
-  color:var(--muted);
-  font-size:.75rem;
-  font-weight:800;
-  text-transform:uppercase;
+.week-stat-label {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .week-stat strong {
-  font-size:1.5rem;
+  font-size: 1.55rem;
 }
 
-.instructions {
-  display:flex;
-  align-items:center;
-  line-height:1.5;
-}
-
-.tabs,
-.board-actions {
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-}
-
-.tabs {
-  margin-bottom:20px;
-}
-
-.tab.active {
-  border-color:var(--primary);
-  background:rgba(52,211,153,.16);
-  color:#d1fae5;
+.week-instructions {
+  display: flex;
+  align-items: center;
+  padding-inline: 12px;
+  line-height: 1.55;
 }
 
 .progress-panel {
-  display:grid;
-  grid-template-columns:190px 1fr;
-  align-items:center;
-  gap:18px;
-  margin-bottom:20px;
-  padding:16px 18px;
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 20px;
+  padding: 16px 18px;
 }
 
 .progress-label {
-  display:block;
-  color:var(--muted);
-  font-size:.8rem;
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.8rem;
 }
 
 .progress-track {
-  height:10px;
-  overflow:hidden;
-  border-radius:999px;
-  background:var(--surface-dark);
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-dark);
 }
 
 .progress-bar {
-  width:0;
-  height:100%;
-  background:linear-gradient(90deg,var(--primary),var(--accent));
-  transition:width .2s ease;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  transition: width 220ms ease;
 }
 
 .games-grid {
-  display:grid;
-  gap:14px;
+  display: grid;
+  gap: 14px;
 }
 
 .game-card {
-  display:grid;
-  grid-template-columns:60px minmax(220px,1fr) minmax(350px,1.2fr);
-  align-items:center;
-  gap:18px;
-  padding:18px;
+  display: grid;
+  grid-template-columns: 70px minmax(220px, 1fr) minmax(360px, 1.2fr);
+  align-items: center;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+  background: rgba(17, 31, 51, 0.92);
+  transition: border-color 160ms ease, transform 160ms ease;
 }
 
+.game-card:focus-within,
 .game-card.has-pick {
-  border-color:rgba(52,211,153,.7);
+  border-color: rgba(52, 211, 153, 0.65);
 }
 
 .game-number {
-  display:grid;
-  width:48px;
-  height:48px;
-  place-items:center;
-  border-radius:14px;
-  background:var(--surface-dark);
-  color:var(--muted);
-  font-weight:800;
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--surface-dark);
+  color: var(--text-muted);
+  font-weight: 850;
 }
 
 .matchup-label {
-  margin:0;
-  color:var(--muted);
-  font-size:.75rem;
-  font-weight:800;
-  text-transform:uppercase;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .matchup-title {
-  margin:5px 0 0;
-  font-size:1.25rem;
+  margin: 4px 0 0;
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+  line-height: 1.3;
 }
 
 .pick-options {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .pick-choice {
-  position:relative;
-  display:flex;
-  min-height:52px;
-  align-items:center;
-  justify-content:center;
-  padding:12px;
-  border:1px solid var(--border);
-  border-radius:12px;
-  background:var(--surface-dark);
-  cursor:pointer;
-  text-align:center;
-  font-weight:750;
+  position: relative;
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-dark);
+  cursor: pointer;
+  text-align: center;
+  font-weight: 750;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.pick-choice:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-raised);
+  transform: translateY(-1px);
 }
 
 .pick-choice input {
-  position:absolute;
-  width:1px;
-  height:1px;
-  opacity:0;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
 }
 
 .pick-choice:has(input:checked) {
-  border-color:var(--primary);
-  background:rgba(52,211,153,.16);
-  color:#d1fae5;
+  border-color: var(--primary);
+  background: rgba(52, 211, 153, 0.16);
+  color: #d1fae5;
+  box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.28);
 }
 
 .tiebreak-card {
-  display:grid;
-  grid-template-columns:1fr 180px;
-  align-items:center;
-  gap:20px;
-  margin-top:20px;
-  padding:20px;
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  align-items: center;
+  gap: 24px;
+  margin-top: 22px;
+  padding: 22px;
+}
+
+.tiebreak-card p:last-child {
+  margin-bottom: 0;
+}
+
+.tiebreak-card input {
+  padding: 16px;
+  text-align: center;
+  font-size: 1.35rem;
+  font-weight: 850;
 }
 
 .action-bar {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:14px;
-  margin-top:18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 18px;
 }
 
 .message {
-  min-height:24px;
-  margin-top:15px;
-  font-weight:750;
+  min-height: 24px;
+  margin: 16px 0 0;
+  font-weight: 750;
 }
 
-.message:not(:empty) {
-  padding:14px;
-  border:1px solid var(--border);
-  border-radius:12px;
-  background:var(--surface);
+.message-panel {
+  display: none;
+  padding: 15px 18px;
+}
+
+.message-panel:not(:empty) {
+  display: block;
 }
 
 .message.info {
-  color:var(--warning);
+  color: var(--warning);
 }
 
 .message.success {
-  color:var(--success);
+  color: var(--success);
 }
 
 .message.error {
-  color:var(--danger);
+  color: var(--danger);
+}
+
+.view-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.tab-button.active {
+  border-color: var(--primary);
+  background: rgba(52, 211, 153, 0.16);
+  color: #d1fae5;
 }
 
 .section-heading {
-  display:flex;
-  align-items:end;
-  justify-content:space-between;
-  gap:16px;
-  margin-bottom:16px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
 }
 
-.table-wrap {
-  overflow-x:auto;
+.board-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.picks-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+  background: rgba(17, 31, 51, 0.92);
 }
 
 .picks-table {
-  width:100%;
-  min-width:1100px;
-  border-collapse:collapse;
+  width: 100%;
+  min-width: 980px;
+  border-collapse: collapse;
 }
 
 .picks-table th,
 .picks-table td {
-  padding:12px;
-  border-right:1px solid var(--border);
-  border-bottom:1px solid var(--border);
-  text-align:center;
-  white-space:nowrap;
-}
-
-.picks-table th {
-  background:var(--surface-dark);
-  color:var(--muted);
-  font-size:.75rem;
-  text-transform:uppercase;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  text-align: center;
+  white-space: nowrap;
 }
 
 .picks-table th:first-child,
 .picks-table td:first-child {
-  position:sticky;
-  left:0;
-  z-index:1;
-  min-width:180px;
-  background:var(--surface);
-  text-align:left;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 180px;
+  background: var(--surface);
+  text-align: left;
+}
+
+.picks-table thead th {
+  background: var(--surface-dark);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .pick-correct {
-  background:rgba(74,222,128,.22);
-  color:#bbf7d0;
-  font-weight:850;
+  background: rgba(74, 222, 128, 0.2);
+  color: #bbf7d0;
+  font-weight: 850;
 }
 
 .pick-wrong {
-  background:rgba(251,113,133,.17);
-  color:#fecdd3;
+  background: rgba(251, 113, 133, 0.15);
+  color: #fecdd3;
 }
 
 .winner-badge {
-  display:block;
-  margin-top:5px;
-  color:var(--success);
-  font-size:.68rem;
-}
-
-.admin-card {
-  padding:22px;
+  display: inline-block;
+  margin-top: 5px;
+  color: var(--success);
+  font-size: 0.7rem;
+  font-weight: 850;
 }
 
 .results-grid {
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .result-row {
-  display:grid;
-  grid-template-columns:1fr 175px;
-  align-items:center;
-  gap:12px;
-  padding:14px;
-  border:1px solid var(--border);
-  border-radius:12px;
-  background:var(--surface-dark);
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-dark);
 }
 
-.legend {
-  display:flex;
-  gap:18px;
-  padding:14px;
-  color:var(--muted);
+.result-row select {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--surface);
+  color: var(--text);
 }
 
-.legend-correct {
-  color:var(--success);
-  font-weight:bold;
+.admin-card {
+  margin-top: 22px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+  background: rgba(17, 31, 51, 0.92);
 }
 
-.legend-wrong {
-  color:var(--danger);
-  font-weight:bold;
+.standings-card {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-medium);
+  background: rgba(17, 31, 51, 0.92);
 }
 
-@media(max-width:850px) {
+.standings-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.standings-table th,
+.standings-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.standings-table th {
+  background: var(--surface-dark);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.standings-table td.number,
+.standings-table th.number {
+  text-align: center;
+}
+
+.first-place td {
+  background: rgba(74, 222, 128, 0.12);
+  color: #d1fae5;
+  font-weight: 800;
+}
+
+.champion-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.18);
+  color: #fde68a;
+  font-size: 0.7rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
   body {
-    padding:16px;
+    padding: 20px;
   }
 
   .game-card {
-    grid-template-columns:50px 1fr;
+    grid-template-columns: 54px 1fr;
   }
 
   .pick-options {
-    grid-column:1/-1;
-  }
-
-  .results-grid {
-    grid-template-columns:1fr;
+    grid-column: 1 / -1;
   }
 }
 
-@media(max-width:600px) {
+@media (max-width: 640px) {
+  body {
+    padding: 14px;
+  }
+
   .top-bar,
   .week-panel,
   .progress-panel,
   .tiebreak-card,
-  .action-bar,
-  .result-row {
-    display:grid;
-    grid-template-columns:1fr;
+  .action-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .top-bar {
+    align-items: stretch;
+  }
+
+  .top-bar .button {
+    width: 100%;
+  }
+
+  .week-instructions {
+    padding: 4px;
+  }
+
+  .game-card {
+    grid-template-columns: 1fr;
+  }
+
+  .game-number {
+    width: 42px;
+    height: 42px;
   }
 
   .pick-options {
-    grid-template-columns:1fr;
+    grid-column: auto;
+    grid-template-columns: 1fr;
   }
 
-  .section-heading {
-    align-items:stretch;
-    flex-direction:column;
+  .tiebreak-card input {
+    width: 100%;
+  }
+
+  .results-grid,
+  .result-row {
+    grid-template-columns: 1fr;
   }
 }
-</style>
+
+  </style>
 </head>
-
 <body>
-<main class="app-shell">
+  <main class="app-shell">
+    <section id="loginView" class="login-card" aria-labelledby="loginTitle">
+      <div class="brand-mark" aria-hidden="true">🏈</div>
+      <p class="eyebrow">Staff Pick'em</p>
+      <h1 id="loginTitle">Weekly NFL Picks</h1>
+      <p class="subtitle">Sign in to make or review your selections.</p>
 
-  <section id="loginView" class="login-card">
-    <div class="brand-mark">🏈</div>
-    <p class="eyebrow">Staff Pick'em</p>
-    <h1>Weekly NFL Picks</h1>
-    <p class="subtitle">Sign in to make or review your selections.</p>
+      <form id="loginForm" class="login-form" novalidate>
+        <label for="email">Email address</label>
+        <input id="email" name="email" type="email" autocomplete="username" placeholder="name@example.com" required>
 
-    <form id="loginForm" class="login-form">
-      <label for="email">Email address</label>
-      <input id="email" type="email" required>
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
 
-      <label for="password">Password</label>
-      <input id="password" type="password" required>
+        <button id="loginButton" class="button button-primary" type="submit">
+          <span>Sign In</span>
+        </button>
+      </form>
 
-      <button id="loginButton" class="button button-primary" type="submit">
-        Sign In
-      </button>
-    </form>
-
-    <p id="loginMessage" class="message"></p>
-  </section>
-
-  <section id="appView" class="hidden">
-
-    <header class="top-bar">
-      <div>
-        <p class="eyebrow">Staff Pick'em</p>
-        <h1>Weekly NFL Picks</h1>
-        <p id="userDisplay" class="user-display"></p>
-      </div>
-
-      <button id="logoutButton" class="button button-secondary" type="button">
-        Sign Out
-      </button>
-    </header>
-
-    <section class="week-panel">
-      <div class="week-stat">
-        <span class="week-label">Season</span>
-        <strong id="seasonDisplay"></strong>
-      </div>
-
-      <div class="week-stat">
-        <span class="week-label">Week</span>
-        <strong id="weekDisplay"></strong>
-      </div>
-
-      <div class="instructions">
-        Select one winner for every matchup and enter the total-points tiebreaker.
-      </div>
+      <p id="loginMessage" class="message" role="status" aria-live="polite"></p>
     </section>
 
-    <nav class="tabs">
-      <button id="myPicksTab" class="button button-secondary tab active" type="button">
-        My Picks
-      </button>
+    <section id="picksView" class="page hidden" aria-labelledby="pageTitle">
+      <header class="top-bar">
+        <div>
+          <p class="eyebrow">Staff Pick'em</p>
+          <h1 id="pageTitle">Weekly NFL Picks</h1>
+          <p id="userDisplay" class="user-display"></p>
+        </div>
+        <button id="logoutButton" class="button button-secondary" type="button">Sign Out</button>
+      </header>
 
-      <button id="allPicksTab" class="button button-secondary tab" type="button">
-        Everyone's Picks
-      </button>
+      <section class="week-panel" aria-label="Current pick period">
+        <div class="week-stat">
+          <span class="week-stat-label">Season</span>
+          <strong id="seasonDisplay">2026</strong>
+        </div>
+        <div class="week-stat">
+          <span class="week-stat-label">Week</span>
+          <strong id="weekDisplay">1</strong>
+        </div>
+        <div class="week-instructions">
+          Select one winner for every matchup, then enter the total-points tiebreaker.
+        </div>
+      </section>
 
-      <button id="resultsTab" class="button button-secondary tab hidden" type="button">
-        Enter Winners
-      </button>
-    </nav>
+      <nav class="view-tabs" aria-label="Pick pages">
+        <button id="myPicksTab" class="button button-secondary tab-button active" type="button">My Picks</button>
+        <button id="allPicksTab" class="button button-secondary tab-button" type="button">Everyone's Picks</button>
+        <button id="standingsTab" class="button button-secondary tab-button" type="button">Standings</button>
+        <button id="seasonWinnersTab" class="button button-secondary tab-button" type="button">Season Winners</button>
+        <button id="resultsTab" class="button button-secondary tab-button hidden" type="button">Enter Winners</button>
+      </nav>
 
-    <section id="myPicksPage">
+      <div id="myPicksPage">
 
-      <section class="progress-panel">
+      <section class="progress-panel" aria-label="Pick progress">
         <div>
           <span class="progress-label">Pick progress</span>
-          <strong id="progressText">0 selected</strong>
+          <strong id="progressText">0 of 16 selected</strong>
         </div>
-
-        <div class="progress-track">
+        <div class="progress-track" aria-hidden="true">
           <div id="progressBar" class="progress-bar"></div>
         </div>
       </section>
 
-      <form id="picksForm">
-
+      <form id="picksForm" novalidate>
         <div id="games" class="games-grid"></div>
 
         <section class="tiebreak-card">
           <div>
             <p class="eyebrow">Final Game Tiebreaker</p>
-            <label for="tiebreak">Predicted combined points</label>
+            <label for="tiebreak">Predicted total points</label>
+            <p>Enter the combined score for the designated tiebreaker game.</p>
           </div>
-
-          <input
-            id="tiebreak"
-            type="number"
-            min="0"
-            max="200"
-            placeholder="47"
-            required
-          >
+          <input id="tiebreak" name="tiebreak" type="number" min="0" max="200" inputmode="numeric" placeholder="47" required>
         </section>
 
         <div class="action-bar">
-          <button id="savePicksButton" class="button button-primary button-large" type="submit">
-            Save My Picks
-          </button>
-
-          <button id="exportButton" class="button button-secondary button-large" type="button">
-            Export My Picks
-          </button>
+          <button id="submitButton" class="button button-primary button-large" type="submit">Save My Picks</button>
+          <button id="exportButton" class="button button-secondary button-large" type="button">Export My Picks</button>
         </div>
       </form>
 
-      <p id="pickMessage" class="message"></p>
-    </section>
-
-    <section id="allPicksPage" class="hidden">
-
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Weekly Board</p>
-          <h2>Everyone's Picks</h2>
-        </div>
-
-        <div class="board-actions">
-          <button id="refreshBoardButton" class="button button-secondary" type="button">
-            Refresh
-          </button>
-
-          <button id="exportAllButton" class="button button-primary" type="button">
-            Export All Picks
-          </button>
-        </div>
+      <p id="pickMessage" class="message message-panel" role="status" aria-live="polite"></p>
       </div>
 
-      <p id="allPicksMessage" class="message"></p>
+      <section id="allPicksPage" class="hidden" aria-labelledby="allPicksTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Weekly Board</p>
+            <h2 id="allPicksTitle">Everyone's Picks</h2>
+          </div>
+          <div class="board-actions">
+            <button id="refreshBoardButton" class="button button-secondary" type="button">Refresh</button>
+            <button id="exportAllButton" class="button button-primary" type="button">Export All Picks</button>
+          </div>
+        </div>
+        <div id="allPicksMessage" class="message message-panel" role="status" aria-live="polite"></div>
+        <div id="picksTableContainer" class="picks-table-wrap"></div>
+      </section>
 
-      <div id="picksTableContainer" class="table-wrap"></div>
+      <section id="resultsPage" class="hidden" aria-labelledby="resultsTitle">
+        <div class="admin-card">
+          <p class="eyebrow">Administrator</p>
+          <h2 id="resultsTitle">Enter Official Winners</h2>
+          <p class="subtitle">Select winners as games finish. Saved winners immediately highlight everyone's picks.</p>
+          <form id="resultsForm">
+            <div id="resultsGrid" class="results-grid"></div>
+            <section class="tiebreak-card">
+              <div>
+                <label for="actualTiebreak">Actual tiebreaker total</label>
+                <p>Optional until the final game is complete.</p>
+              </div>
+              <input id="actualTiebreak" type="number" min="0" max="200" inputmode="numeric">
+            </section>
+            <button id="saveResultsButton" class="button button-primary button-large" type="submit">Save Winners</button>
+          </form>
+          <p id="resultsMessage" class="message message-panel" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <section id="standingsPage" class="hidden" aria-labelledby="standingsTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Week <span id="standingsWeek"></span></p>
+            <h2 id="standingsTitle">Weekly Standings</h2>
+          </div>
+          <button id="refreshStandingsButton" class="button button-secondary" type="button">Refresh</button>
+        </div>
+        <p id="standingsMessage" class="message message-panel" role="status" aria-live="polite"></p>
+        <div id="standingsContainer" class="standings-card"></div>
+      </section>
+
+      <section id="seasonWinnersPage" class="hidden" aria-labelledby="seasonWinnersTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Season <span id="winnersSeason"></span></p>
+            <h2 id="seasonWinnersTitle">Season Winners</h2>
+          </div>
+          <button id="refreshWinnersButton" class="button button-secondary" type="button">Refresh</button>
+        </div>
+        <p id="seasonWinnersMessage" class="message message-panel" role="status" aria-live="polite"></p>
+        <div id="seasonWinnersContainer" class="standings-card"></div>
+      </section>
     </section>
+  </main>
 
-    <section id="resultsPage" class="hidden">
-
-      <div class="admin-card">
-        <p class="eyebrow">Administrator</p>
-        <h2>Enter Official Winners</h2>
-
-        <p class="subtitle">
-          Select winners as games finish. Correct picks turn green and
-          incorrect picks turn red.
-        </p>
-
-        <form id="resultsForm">
-          <div id="resultsGrid" class="results-grid"></div>
-
-          <section class="tiebreak-card">
-            <div>
-              <label for="actualTiebreak">Actual tiebreaker total</label>
-              <p class="subtitle">Optional until the final game is finished.</p>
-            </div>
-
-            <input id="actualTiebreak" type="number" min="0" max="200">
-          </section>
-
-          <button
-            id="saveResultsButton"
-            class="button button-primary button-large"
-            type="submit"
-          >
-            Save Winners
-          </button>
-        </form>
-
-        <p id="resultsMessage" class="message"></p>
-      </div>
-    </section>
-
-  </section>
-</main>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-const SUPABASE_URL =
-  "https://izxvdpkqdasfemopjmeu.supabase.co";
-
-const SUPABASE_PUBLISHABLE_KEY =
-  "sb_publishable_9F6Tt_qADFq0vYWuBGwtTg_XvnyrWI4";
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+const SUPABASE_URL = "https://izxvdpkqdasfemopjmeu.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_9F6Tt_qADFq0vYWuBGwtTg_XvnyrWI4";
 
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_PUBLISHABLE_KEY
 );
 
-const SETTINGS = {
-  season:2026,
-  week:1,
-  picksTable:"weekly_picks",
-  resultsTable:"weekly_results",
-  profilesTable:"profiles"
-};
 
-const GAMES = [
-  {id:1,away:"New England",home:"Seattle"},
-  {id:2,away:"San Francisco",home:"Rams"},
-  {id:3,away:"Tampa Bay",home:"Cincinnati"},
-  {id:4,away:"New Orleans",home:"Detroit"},
-  {id:5,away:"Jets",home:"Tennessee"},
-  {id:6,away:"Baltimore",home:"Indianapolis"},
-  {id:7,away:"Atlanta",home:"Pittsburgh"},
-  {id:8,away:"Chicago",home:"Carolina"},
-  {id:9,away:"Cleveland",home:"Jacksonville"},
-  {id:10,away:"Buffalo",home:"Houston"},
-  {id:11,away:"Miami",home:"Raiders"},
-  {id:12,away:"Green Bay",home:"Minnesota"},
-  {id:13,away:"Washington",home:"Eagles"},
-  {id:14,away:"Arizona",home:"Chargers"},
-  {id:15,away:"Dallas",home:"Giants"},
-  {id:16,away:"Denver",home:"Chiefs"}
-];
+const APP_SETTINGS = Object.freeze({
+  season: 2026,
+  weekNumber: 1,
+  tableName: "weekly_picks",
+  resultsTableName: "weekly_results",
+  profilesTableName: "profiles",
+  maxTiebreakPoints: 200
+});
 
-const ui = {};
 
-document.addEventListener("DOMContentLoaded",initializeApp);
+const GAMES = Object.freeze([
+  { id: 1, away: "New England", home: "Seattle" },
+  { id: 2, away: "San Francisco", home: "Rams" },
+  { id: 3, away: "Tampa Bay", home: "Cincinnati" },
+  { id: 4, away: "New Orleans", home: "Detroit" },
+  { id: 5, away: "Jets", home: "Tennessee" },
+  { id: 6, away: "Baltimore", home: "Indianapolis" },
+  { id: 7, away: "Atlanta", home: "Pittsburgh" },
+  { id: 8, away: "Chicago", home: "Carolina" },
+  { id: 9, away: "Cleveland", home: "Jacksonville" },
+  { id: 10, away: "Buffalo", home: "Houston" },
+  { id: 11, away: "Miami", home: "Raiders" },
+  { id: 12, away: "Green Bay", home: "Minnesota" },
+  { id: 13, away: "Washington", home: "Eagles" },
+  { id: 14, away: "Arizona", home: "Chargers" },
+  { id: 15, away: "Dallas", home: "Giants" },
+  { id: 16, away: "Denver", home: "Chiefs" }
+]);
 
-function byId(id) {
+
+function getElement(id) {
   const element = document.getElementById(id);
 
   if (!element) {
-    throw new Error(`Element not found: ${id}`);
+    throw new Error(`Required element not found: #${id}`);
   }
 
   return element;
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
-function setMessage(element,text="",type="info") {
+function setMessage(element, text = "", type = "info") {
   element.textContent = text;
-  element.classList.remove("info","success","error");
+  element.classList.remove("info", "success", "error");
 
   if (text) {
     element.classList.add(type);
   }
 }
 
-function setBusy(button,busy,busyText) {
+function setButtonBusy(button, isBusy, busyText) {
   if (!button.dataset.defaultText) {
     button.dataset.defaultText = button.textContent.trim();
   }
 
-  button.disabled = busy;
-  button.textContent =
-    busy ? busyText : button.dataset.defaultText;
+  button.disabled = isBusy;
+  button.textContent = isBusy ? busyText : button.dataset.defaultText;
 }
 
-async function initializeApp() {
-  cacheUi();
-  buildGames();
-  buildResultsForm();
-  attachEvents();
-
-  ui.seasonDisplay.textContent = SETTINGS.season;
-  ui.weekDisplay.textContent = SETTINGS.week;
-
-  try {
-    const {data,error} =
-      await supabaseClient.auth.getSession();
-
-    if (error) {
-      throw error;
-    }
-
-    if (data.session) {
-      await showApplication(data.session.user);
-    } else {
-      showLogin();
-    }
-  } catch (error) {
-    showLogin();
-    setMessage(
-      ui.loginMessage,
-      error.message || "Unable to start.",
-      "error"
-    );
-  }
-}
-
-function cacheUi() {
-  ui.loginView = byId("loginView");
-  ui.appView = byId("appView");
-  ui.loginForm = byId("loginForm");
-  ui.email = byId("email");
-  ui.password = byId("password");
-  ui.loginButton = byId("loginButton");
-  ui.loginMessage = byId("loginMessage");
-  ui.logoutButton = byId("logoutButton");
-  ui.userDisplay = byId("userDisplay");
-
-  ui.seasonDisplay = byId("seasonDisplay");
-  ui.weekDisplay = byId("weekDisplay");
-
-  ui.myPicksTab = byId("myPicksTab");
-  ui.allPicksTab = byId("allPicksTab");
-  ui.resultsTab = byId("resultsTab");
-
-  ui.myPicksPage = byId("myPicksPage");
-  ui.allPicksPage = byId("allPicksPage");
-  ui.resultsPage = byId("resultsPage");
-
-  ui.games = byId("games");
-  ui.progressText = byId("progressText");
-  ui.progressBar = byId("progressBar");
-  ui.picksForm = byId("picksForm");
-  ui.tiebreak = byId("tiebreak");
-  ui.savePicksButton = byId("savePicksButton");
-  ui.exportButton = byId("exportButton");
-  ui.pickMessage = byId("pickMessage");
-
-  ui.refreshBoardButton = byId("refreshBoardButton");
-  ui.exportAllButton = byId("exportAllButton");
-  ui.allPicksMessage = byId("allPicksMessage");
-  ui.picksTableContainer = byId("picksTableContainer");
-
-  ui.resultsForm = byId("resultsForm");
-  ui.resultsGrid = byId("resultsGrid");
-  ui.actualTiebreak = byId("actualTiebreak");
-  ui.saveResultsButton = byId("saveResultsButton");
-  ui.resultsMessage = byId("resultsMessage");
-}
-
-function attachEvents() {
-  ui.loginForm.addEventListener("submit",handleLogin);
-  ui.logoutButton.addEventListener("click",handleLogout);
-
-  ui.myPicksTab.addEventListener(
-    "click",
-    () => switchPage("mine")
-  );
-
-  ui.allPicksTab.addEventListener(
-    "click",
-    () => switchPage("all")
-  );
-
-  ui.resultsTab.addEventListener(
-    "click",
-    () => switchPage("results")
-  );
-
-  ui.picksForm.addEventListener(
-    "submit",
-    handleSavePicks
-  );
-
-  ui.exportButton.addEventListener(
-    "click",
-    exportMyPicks
-  );
-
-  ui.refreshBoardButton.addEventListener(
-    "click",
-    loadEveryonePicks
-  );
-
-  ui.exportAllButton.addEventListener(
-    "click",
-    exportAllPicks
-  );
-
-  ui.resultsForm.addEventListener(
-    "submit",
-    handleSaveResults
-  );
-}
-
-function buildGames() {
-  ui.games.innerHTML = GAMES.map((game,index) => `
-    <article class="game-card" data-game="${game.id}">
-      <div class="game-number">${index + 1}</div>
-
-      <div>
-        <p class="matchup-label">Game ${index + 1}</p>
-        <h2 class="matchup-title">
-          ${escapeHtml(game.away)} @ ${escapeHtml(game.home)}
-        </h2>
-      </div>
-
-      <div class="pick-options">
-        ${createPickOption(game.id,game.away)}
-        ${createPickOption(game.id,game.home)}
-      </div>
-    </article>
-  `).join("");
-
-  ui.games.addEventListener("change",event => {
-    if (event.target.matches('input[type="radio"]')) {
-      event.target
-        .closest(".game-card")
-        .classList.add("has-pick");
-
-      updateProgress();
-    }
-  });
-
-  updateProgress();
-}
-
-function createPickOption(gameId,team) {
-  return `
-    <label class="pick-choice">
-      <input
-        type="radio"
-        name="game_${gameId}"
-        value="${escapeHtml(team)}"
-      >
-      <span>${escapeHtml(team)}</span>
-    </label>
-  `;
-}
-
-function buildResultsForm() {
-  ui.resultsGrid.innerHTML = GAMES.map((game,index) => `
-    <label class="result-row">
-      <span>
-        <strong>Game ${index + 1}</strong><br>
-        ${escapeHtml(game.away)} @ ${escapeHtml(game.home)}
-      </span>
-
-      <select name="winner_${game.id}">
-        <option value="">Not final</option>
-        <option value="${escapeHtml(game.away)}">
-          ${escapeHtml(game.away)}
-        </option>
-        <option value="${escapeHtml(game.home)}">
-          ${escapeHtml(game.home)}
-        </option>
-      </select>
-    </label>
-  `).join("");
-}
-
-function updateProgress() {
-  const selected =
-    document.querySelectorAll(
-      '#games input[type="radio"]:checked'
-    ).length;
-
-  ui.progressText.textContent =
-    `${selected} of ${GAMES.length} selected`;
-
-  ui.progressBar.style.width =
-    `${(selected / GAMES.length) * 100}%`;
-}
-
-function switchPage(page) {
-  ui.myPicksPage.classList.toggle(
-    "hidden",
-    page !== "mine"
-  );
-
-  ui.allPicksPage.classList.toggle(
-    "hidden",
-    page !== "all"
-  );
-
-  ui.resultsPage.classList.toggle(
-    "hidden",
-    page !== "results"
-  );
-
-  ui.myPicksTab.classList.toggle(
-    "active",
-    page === "mine"
-  );
-
-  ui.allPicksTab.classList.toggle(
-    "active",
-    page === "all"
-  );
-
-  ui.resultsTab.classList.toggle(
-    "active",
-    page === "results"
-  );
-
-  if (page === "all") {
-    loadEveryonePicks();
+function csvEscape(value) {
+  if (value === null || value === undefined) {
+    return "";
   }
 
-  if (page === "results") {
-    loadOfficialResults();
-  }
+  const text = String(value);
+  const requiresQuotes = /[",\n]/.test(text);
+
+  return requiresQuotes
+    ? `"${text.replaceAll('"', '""')}"`
+    : text;
 }
 
-function showLogin() {
-  ui.loginView.classList.remove("hidden");
-  ui.appView.classList.add("hidden");
-  ui.password.value = "";
+function downloadTextFile(filename, text, mimeType = "text/plain;charset=utf-8") {
+  const blob = new Blob([text], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-async function showApplication(user) {
-  ui.loginView.classList.add("hidden");
-  ui.appView.classList.remove("hidden");
-
-  ui.userDisplay.textContent =
-    user.user_metadata?.full_name ||
-    user.email ||
-    "Signed-in user";
-
-  try {
-    const role = await getUserRole(user.id);
-
-    ui.resultsTab.classList.toggle(
-      "hidden",
-      role !== "admin"
-    );
-  } catch (error) {
-    console.error(error);
-    ui.resultsTab.classList.add("hidden");
-  }
-
-  switchPage("mine");
-  await loadMyPicks();
-}
-
-async function handleLogin(event) {
-  event.preventDefault();
-
-  setMessage(ui.loginMessage);
-  setBusy(ui.loginButton,true,"Signing In...");
-
-  try {
-    const {data,error} =
-      await supabaseClient.auth.signInWithPassword({
-        email:ui.email.value.trim(),
-        password:ui.password.value
-      });
-
-    if (error) {
-      throw error;
-    }
-
-    await showApplication(data.user);
-  } catch (error) {
-    setMessage(
-      ui.loginMessage,
-      error.message || "Unable to sign in.",
-      "error"
-    );
-  } finally {
-    setBusy(ui.loginButton,false);
-  }
-}
-
-async function handleLogout() {
-  setBusy(ui.logoutButton,true,"Signing Out...");
-
-  try {
-    const {error} =
-      await supabaseClient.auth.signOut();
-
-    if (error) {
-      throw error;
-    }
-
-    showLogin();
-  } catch (error) {
-    setMessage(
-      ui.pickMessage,
-      error.message || "Unable to sign out.",
-      "error"
-    );
-  } finally {
-    setBusy(ui.logoutButton,false);
-  }
-}
 
 async function getCurrentUser() {
-  const {data,error} =
-    await supabaseClient.auth.getUser();
+  const { data, error } = await supabaseClient.auth.getUser();
 
   if (error) {
     throw error;
@@ -1099,130 +916,172 @@ async function getCurrentUser() {
   return data.user;
 }
 
-async function getUserRole(userId) {
-  const {data,error} = await supabaseClient
-    .from(SETTINGS.profilesTable)
-    .select("role")
-    .eq("id",userId)
-    .maybeSingle();
+async function loginUser(email, password) {
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
 
   if (error) {
     throw error;
   }
 
-  return data?.role || "user";
+  return data.user;
 }
 
-function collectSelectedPicks() {
+async function logoutUser() {
+  const { error } = await supabaseClient.auth.signOut();
+
+  if (error) {
+    throw error;
+  }
+}
+
+async function getActiveSession() {
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  if (error) {
+    throw error;
+  }
+
+  return data.session;
+}
+
+
+function buildGames() {
+  const gamesContainer = getElement("games");
+
+  gamesContainer.innerHTML = GAMES.map((game, index) => `
+    <article class="game-card" data-game-id="${game.id}">
+      <div class="game-number">${index + 1}</div>
+
+      <div class="matchup">
+        <p class="matchup-label">Game ${index + 1}</p>
+        <h2 class="matchup-title">${game.away} <span aria-hidden="true">@</span> ${game.home}</h2>
+      </div>
+
+      <div class="pick-options" role="radiogroup" aria-label="${game.away} at ${game.home}">
+        ${createPickChoice(game.id, game.away)}
+        ${createPickChoice(game.id, game.home)}
+      </div>
+    </article>
+  `).join("");
+
+  gamesContainer.addEventListener("change", handlePickChange);
+  updatePickProgress();
+}
+
+function createPickChoice(gameId, teamName) {
+  return `
+    <label class="pick-choice">
+      <input type="radio" name="game_${gameId}" value="${teamName}">
+      <span>${teamName}</span>
+    </label>
+  `;
+}
+
+function handlePickChange(event) {
+  if (!event.target.matches('input[type="radio"]')) {
+    return;
+  }
+
+  const gameCard = event.target.closest(".game-card");
+  gameCard?.classList.add("has-pick");
+  updatePickProgress();
+}
+
+function updatePickProgress() {
+  const selectedCount = document.querySelectorAll('#games input[type="radio"]:checked').length;
+  const totalGames = GAMES.length;
+  const percentComplete = totalGames === 0 ? 0 : (selectedCount / totalGames) * 100;
+
+  getElement("progressText").textContent = `${selectedCount} of ${totalGames} selected`;
+  getElement("progressBar").style.width = `${percentComplete}%`;
+}
+
+function getSelectedPicks() {
   const picks = {};
 
   for (const game of GAMES) {
-    const selected = document.querySelector(
-      `input[name="game_${game.id}"]:checked`
-    );
+    const selected = document.querySelector(`input[name="game_${game.id}"]:checked`);
 
     if (!selected) {
       return null;
     }
 
     picks[game.id] = {
-      game_id:game.id,
-      away:game.away,
-      home:game.home,
-      pick:selected.value
+      game_id: game.id,
+      away: game.away,
+      home: game.home,
+      pick: selected.value
     };
   }
 
   return picks;
 }
 
-async function handleSavePicks(event) {
-  event.preventDefault();
+function validateTiebreak(value) {
+  const number = Number(value);
 
-  setMessage(ui.pickMessage);
-  setBusy(
-    ui.savePicksButton,
-    true,
-    "Saving Picks..."
-  );
+  return Number.isInteger(number)
+    && number >= 0
+    && number <= APP_SETTINGS.maxTiebreakPoints;
+}
 
-  try {
-    const picks = collectSelectedPicks();
+async function saveMyPicks() {
+  const picks = getSelectedPicks();
+  const tiebreakInput = getElement("tiebreak");
+  const tiebreakValue = tiebreakInput.value.trim();
 
-    if (!picks) {
-      throw new Error(
-        "Please select a winner for every game."
-      );
-    }
+  if (!picks) {
+    throw new Error("Please select a winner for every game.");
+  }
 
-    const tiebreak = Number(ui.tiebreak.value);
+  if (!validateTiebreak(tiebreakValue)) {
+    throw new Error(`Enter a whole-number tiebreaker from 0 to ${APP_SETTINGS.maxTiebreakPoints}.`);
+  }
 
-    if (
-      ui.tiebreak.value === "" ||
-      !Number.isInteger(tiebreak) ||
-      tiebreak < 0 ||
-      tiebreak > 200
-    ) {
-      throw new Error(
-        "Enter a whole-number tiebreaker from 0 to 200."
-      );
-    }
+  const user = await getCurrentUser();
 
-    const user = await getCurrentUser();
-    const now = new Date().toISOString();
+  if (!user) {
+    throw new Error("Your session has expired. Please sign in again.");
+  }
 
-    const record = {
-      user_id:user.id,
-      email:user.email,
-      display_name:
-        user.user_metadata?.full_name ||
-        user.email,
-      season:SETTINGS.season,
-      week_number:SETTINGS.week,
-      picks,
-      tiebreak,
-      submitted_at:now,
-      updated_at:now
-    };
+  const timestamp = new Date().toISOString();
+  const record = {
+    user_id: user.id,
+    email: user.email,
+    display_name: user.user_metadata?.full_name || user.email,
+    season: APP_SETTINGS.season,
+    week_number: APP_SETTINGS.weekNumber,
+    picks,
+    tiebreak: Number(tiebreakValue),
+    submitted_at: timestamp,
+    updated_at: timestamp
+  };
 
-    const {error} = await supabaseClient
-      .from(SETTINGS.picksTable)
-      .upsert(
-        record,
-        {
-          onConflict:"user_id,season,week_number"
-        }
-      );
+  const { error } = await supabaseClient
+    .from(APP_SETTINGS.tableName)
+    .upsert(record, { onConflict: "user_id,season,week_number" });
 
-    if (error) {
-      throw error;
-    }
-
-    setMessage(
-      ui.pickMessage,
-      "Your picks were saved successfully.",
-      "success"
-    );
-  } catch (error) {
-    setMessage(
-      ui.pickMessage,
-      error.message || "Unable to save picks.",
-      "error"
-    );
-  } finally {
-    setBusy(ui.savePicksButton,false);
+  if (error) {
+    throw error;
   }
 }
 
 async function fetchMyPicks() {
   const user = await getCurrentUser();
 
-  const {data,error} = await supabaseClient
-    .from(SETTINGS.picksTable)
+  if (!user) {
+    return null;
+  }
+
+  const { data, error } = await supabaseClient
+    .from(APP_SETTINGS.tableName)
     .select("*")
-    .eq("user_id",user.id)
-    .eq("season",SETTINGS.season)
-    .eq("week_number",SETTINGS.week)
+    .eq("user_id", user.id)
+    .eq("season", APP_SETTINGS.season)
+    .eq("week_number", APP_SETTINGS.weekNumber)
     .maybeSingle();
 
   if (error) {
@@ -1232,566 +1091,640 @@ async function fetchMyPicks() {
   return data;
 }
 
-async function loadMyPicks() {
-  setMessage(
-    ui.pickMessage,
-    "Loading your saved picks...",
-    "info"
-  );
+function applySavedPicks(record) {
+  document.querySelectorAll('#games input[type="radio"]').forEach(input => {
+    input.checked = false;
+  });
 
-  try {
-    const record = await fetchMyPicks();
+  document.querySelectorAll(".game-card").forEach(card => {
+    card.classList.remove("has-pick");
+  });
 
-    document
-      .querySelectorAll('#games input[type="radio"]')
-      .forEach(input => {
-        input.checked = false;
-      });
-
-    document
-      .querySelectorAll(".game-card")
-      .forEach(card => {
-        card.classList.remove("has-pick");
-      });
-
-    if (!record) {
-      ui.tiebreak.value = "";
-      updateProgress();
-
-      setMessage(
-        ui.pickMessage,
-        "No picks are saved yet for this week.",
-        "info"
-      );
-
-      return;
-    }
-
-    Object.values(record.picks || {})
-      .forEach(savedPick => {
-        const radios = document.querySelectorAll(
-          `input[name="game_${savedPick.game_id}"]`
-        );
-
-        const matchingRadio =
-          Array.from(radios).find(
-            radio => radio.value === savedPick.pick
-          );
-
-        if (matchingRadio) {
-          matchingRadio.checked = true;
-
-          matchingRadio
-            .closest(".game-card")
-            .classList.add("has-pick");
-        }
-      });
-
-    ui.tiebreak.value = record.tiebreak ?? "";
-    updateProgress();
-
-    setMessage(
-      ui.pickMessage,
-      "Your saved picks were loaded.",
-      "success"
-    );
-  } catch (error) {
-    setMessage(
-      ui.pickMessage,
-      error.message || "Unable to load picks.",
-      "error"
-    );
-  }
-}
-
-async function fetchEveryonePicks() {
-  const {data,error} = await supabaseClient
-    .from(SETTINGS.picksTable)
-    .select(
-      "display_name,email,picks,tiebreak,submitted_at,updated_at"
-    )
-    .eq("season",SETTINGS.season)
-    .eq("week_number",SETTINGS.week)
-    .order("display_name",{ascending:true});
-
-  if (error) {
-    throw error;
-  }
-
-  return data || [];
-}
-
-async function fetchOfficialResults() {
-  const {data,error} = await supabaseClient
-    .from(SETTINGS.resultsTable)
-    .select("winners,actual_tiebreak")
-    .eq("season",SETTINGS.season)
-    .eq("week_number",SETTINGS.week)
-    .maybeSingle();
-
-  if (error) {
-    throw error;
-  }
-
-  return data || {
-    winners:{},
-    actual_tiebreak:null
-  };
-}
-
-async function loadEveryonePicks() {
-  setMessage(
-    ui.allPicksMessage,
-    "Loading everyone's picks...",
-    "info"
-  );
-
-  try {
-    const [records,results] = await Promise.all([
-      fetchEveryonePicks(),
-      fetchOfficialResults()
-    ]);
-
-    renderEveryoneTable(records,results);
-
-    setMessage(
-      ui.allPicksMessage,
-      `${records.length} submission${records.length === 1 ? "" : "s"} loaded.`,
-      "success"
-    );
-  } catch (error) {
-    setMessage(
-      ui.allPicksMessage,
-      error.message || "Unable to load the weekly board.",
-      "error"
-    );
-  }
-}
-
-function renderEveryoneTable(records,results) {
-  if (!records.length) {
-    ui.picksTableContainer.innerHTML =
-      "<p style='padding:20px'>No picks have been submitted.</p>";
-
+  if (!record) {
+    getElement("tiebreak").value = "";
+    updatePickProgress();
     return;
   }
 
-  const winners = results.winners || {};
+  Object.values(record.picks || {}).forEach(pickRecord => {
+    const radio = Array.from(document.querySelectorAll(`input[name="game_${pickRecord.game_id}"]`))
+      .find(input => input.value === pickRecord.pick);
 
-  const headers = GAMES.map(game => {
-    const winner = winners[game.id];
+    if (radio) {
+      radio.checked = true;
+      radio.closest(".game-card")?.classList.add("has-pick");
+    }
+  });
 
-    return `
-      <th title="${escapeHtml(game.away)} at ${escapeHtml(game.home)}">
-        G${game.id}
-        ${
-          winner
-            ? `<span class="winner-badge">${escapeHtml(shortTeam(winner))}</span>`
-            : ""
-        }
-      </th>
-    `;
-  }).join("");
+  getElement("tiebreak").value = record.tiebreak ?? "";
+  updatePickProgress();
+}
 
-  const rows = records.map(record => {
-    let correctCount = 0;
+function exportPicksToCsv(record) {
+  if (!record) {
+    throw new Error("No saved picks were found for this week.");
+  }
 
-    const cells = GAMES.map(game => {
-      const pick =
-        record.picks?.[game.id]?.pick || "—";
+  const rows = [
+    ["Season", "Week", "Email", "Game", "Away", "Home", "Pick"]
+  ];
 
-      const winner =
-        winners[game.id] || "";
+  Object.keys(record.picks)
+    .sort((a, b) => Number(a) - Number(b))
+    .forEach(gameId => {
+      const pick = record.picks[gameId];
 
-      let className = "";
+      rows.push([
+        record.season,
+        record.week_number,
+        record.email,
+        gameId,
+        pick.away,
+        pick.home,
+        pick.pick
+      ]);
+    });
 
-      if (winner) {
-        if (pick === winner) {
-          className = "pick-correct";
-          correctCount++;
-        } else {
-          className = "pick-wrong";
-        }
-      }
+  rows.push([]);
+  rows.push(["Tie Breaker", record.tiebreak]);
 
-      return `
-        <td class="${className}" title="${escapeHtml(pick)}">
-          ${escapeHtml(shortTeam(pick))}
-        </td>
-      `;
-    }).join("");
+  const csv = rows
+    .map(row => row.map(csvEscape).join(","))
+    .join("\n");
 
-    const name =
-      record.display_name ||
-      record.email ||
-      "Unknown";
+  downloadTextFile(
+    `nfl_picks_${record.season}_week_${record.week_number}.csv`,
+    csv,
+    "text/csv;charset=utf-8"
+  );
+}
 
-    return `
-      <tr>
-        <td>${escapeHtml(name)}</td>
-        ${cells}
-        <td><strong>${correctCount}</strong></td>
-        <td>${record.tiebreak ?? "—"}</td>
-      </tr>
-    `;
-  }).join("");
 
-  ui.picksTableContainer.innerHTML = `
-    <table class="picks-table">
-      <thead>
-        <tr>
-          <th>Player</th>
-          ${headers}
-          <th>Correct</th>
-          <th>Tiebreak</th>
-        </tr>
-      </thead>
+function buildResultsForm() {
+  getElement("resultsGrid").innerHTML = GAMES.map((game, index) => `
+    <label class="result-row">
+      <span><strong>Game ${index + 1}</strong><br>${game.away} @ ${game.home}</span>
+      <select name="winner_${game.id}">
+        <option value="">Not final</option>
+        <option value="${game.away}">${game.away}</option>
+        <option value="${game.home}">${game.home}</option>
+      </select>
+    </label>
+  `).join("");
+}
 
-      <tbody>
-        ${rows}
-      </tbody>
-    </table>
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
 
-    <div class="legend">
-      <span class="legend-correct">Green = Correct</span>
-      <span class="legend-wrong">Red = Incorrect</span>
-    </div>
-  `;
+async function fetchMyRole(userId) {
+  const { data, error } = await supabaseClient.from(APP_SETTINGS.profilesTableName)
+    .select("role").eq("id", userId).maybeSingle();
+  if (error) throw error;
+  return data?.role || "user";
+}
+
+async function fetchAllPicks() {
+  const { data, error } = await supabaseClient.from(APP_SETTINGS.tableName)
+    .select("display_name,email,picks,tiebreak,submitted_at,updated_at")
+    .eq("season", APP_SETTINGS.season)
+    .eq("week_number", APP_SETTINGS.weekNumber)
+    .order("display_name", { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
+async function fetchResults() {
+  const { data, error } = await supabaseClient.from(APP_SETTINGS.resultsTableName)
+    .select("winners,actual_tiebreak")
+    .eq("season", APP_SETTINGS.season)
+    .eq("week_number", APP_SETTINGS.weekNumber).maybeSingle();
+  if (error) throw error;
+  return data || { winners: {}, actual_tiebreak: null };
 }
 
 function shortTeam(team) {
-  if (!team) {
-    return "—";
-  }
-
-  return team.length > 13
-    ? `${team.slice(0,12)}…`
-    : team;
+  if (!team) return "—";
+  return team.length > 13 ? `${team.slice(0, 12)}…` : team;
 }
 
-async function loadOfficialResults() {
-  setMessage(
-    ui.resultsMessage,
-    "Loading official results...",
-    "info"
-  );
+function renderAllPicks(records, results) {
+  const winners = results?.winners || {};
+  const hasAnyWinner = Object.values(winners).some(Boolean);
+  if (!records.length) {
+    getElement("picksTableContainer").innerHTML = '<p style="padding:20px">No one has submitted picks yet.</p>';
+    return;
+  }
+
+  const gameHeaders = GAMES.map(game => {
+    const winner = winners[game.id];
+    return `<th title="${game.away} at ${game.home}">G${game.id}${winner ? `<br><span class="winner-badge">${shortTeam(winner)}</span>` : ""}</th>`;
+  }).join("");
+
+  const rows = records.map(record => {
+    const cells = GAMES.map(game => {
+      const pick = record.picks?.[game.id]?.pick || "—";
+      const winner = winners[game.id];
+      const resultClass = winner ? (pick === winner ? "pick-correct" : "pick-wrong") : "";
+      return `<td class="${resultClass}" title="${pick}">${shortTeam(pick)}</td>`;
+    }).join("");
+    const name = record.display_name || record.email || "Unknown";
+    return `<tr><td>${escapeHtml(name)}</td>${cells}<td>${record.tiebreak ?? "—"}</td></tr>`;
+  }).join("");
+
+  getElement("picksTableContainer").innerHTML = `
+    <table class="picks-table">
+      <thead><tr><th>Player</th>${gameHeaders}<th>Tiebreak</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    ${hasAnyWinner ? '<p style="padding:0 14px 14px;color:var(--text-muted)">Green = correct pick. Red = incorrect pick.</p>' : ""}`;
+}
+
+async function loadAllPicks() {
+  setMessage(ui.allPicksMessage, "Loading everyone's picks...", "info");
+  try {
+    const [records, results] = await Promise.all([fetchAllPicks(), fetchResults()]);
+    renderAllPicks(records, results);
+    setMessage(ui.allPicksMessage, `${records.length} submission${records.length === 1 ? "" : "s"} loaded.`, "success");
+  } catch (error) {
+    console.error("Board load error:", error);
+    setMessage(ui.allPicksMessage, error.message || "Unable to load the weekly board.", "error");
+  }
+}
+
+function applyResultsToForm(results) {
+  for (const game of GAMES) {
+    const select = document.querySelector(`[name="winner_${game.id}"]`);
+    if (select) select.value = results?.winners?.[game.id] || "";
+  }
+  ui.actualTiebreak.value = results?.actual_tiebreak ?? "";
+}
+
+async function loadResultsForm() {
+  setMessage(ui.resultsMessage, "Loading official results...", "info");
+  try {
+    applyResultsToForm(await fetchResults());
+    setMessage(ui.resultsMessage, "Official results loaded.", "success");
+  } catch (error) {
+    setMessage(ui.resultsMessage, error.message || "Unable to load results.", "error");
+  }
+}
+
+async function saveOfficialResults() {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Your session has expired.");
+  const winners = {};
+  for (const game of GAMES) {
+    winners[game.id] = document.querySelector(`[name="winner_${game.id}"]`)?.value || null;
+  }
+  const actualValue = ui.actualTiebreak.value.trim();
+  if (actualValue && !validateTiebreak(actualValue)) {
+    throw new Error(`Enter an actual tiebreaker from 0 to ${APP_SETTINGS.maxTiebreakPoints}.`);
+  }
+  const { error } = await supabaseClient.from(APP_SETTINGS.resultsTableName).upsert({
+    season: APP_SETTINGS.season,
+    week_number: APP_SETTINGS.weekNumber,
+    winners,
+    actual_tiebreak: actualValue === "" ? null : Number(actualValue),
+    updated_by: user.id,
+    updated_at: new Date().toISOString()
+  }, { onConflict: "season,week_number" });
+  if (error) throw error;
+}
+
+function calculateStandings(records, results) {
+  const winners = results?.winners || {};
+  const actual = results?.actual_tiebreak;
+  const finalizedIds = Object.keys(winners).filter(id => Boolean(winners[id]));
+
+  const standings = records.map(record => {
+    const correct = finalizedIds.reduce((total, gameId) => {
+      return total + (record.picks?.[gameId]?.pick === winners[gameId] ? 1 : 0);
+    }, 0);
+    const difference = actual === null || actual === undefined || record.tiebreak === null
+      ? null
+      : Math.abs(Number(record.tiebreak) - Number(actual));
+
+    return {
+      name: record.display_name || record.email || "Unknown",
+      email: record.email || "",
+      correct,
+      tiebreak: record.tiebreak,
+      difference
+    };
+  });
+
+  standings.sort((a, b) => {
+    if (b.correct !== a.correct) return b.correct - a.correct;
+    if (a.difference === null && b.difference === null) return a.name.localeCompare(b.name);
+    if (a.difference === null) return 1;
+    if (b.difference === null) return -1;
+    if (a.difference !== b.difference) return a.difference - b.difference;
+    return a.name.localeCompare(b.name);
+  });
+
+  let prior = null;
+  standings.forEach((entry, index) => {
+    const tied = prior && prior.correct === entry.correct && prior.difference === entry.difference;
+    entry.rank = tied ? prior.rank : index + 1;
+    prior = entry;
+  });
+
+  return { standings, finalizedCount: finalizedIds.length, actual };
+}
+
+async function loadWeeklyStandings() {
+  setMessage(ui.standingsMessage, "Calculating weekly standings...", "info");
+  try {
+    const [records, results] = await Promise.all([fetchAllPicks(), fetchResults()]);
+    const summary = calculateStandings(records, results);
+    if (!summary.standings.length) {
+      ui.standingsContainer.innerHTML = '<p style="padding:20px">No picks have been submitted.</p>';
+    } else {
+      const rows = summary.standings.map(entry => `
+        <tr class="${entry.rank === 1 ? "first-place" : ""}">
+          <td class="number">${entry.rank}</td>
+          <td>${escapeHtml(entry.name)}${entry.rank === 1 ? '<span class="champion-badge">Leader</span>' : ""}</td>
+          <td class="number">${entry.correct}</td>
+          <td class="number">${entry.tiebreak ?? "—"}</td>
+          <td class="number">${entry.difference ?? "—"}</td>
+        </tr>`).join("");
+      ui.standingsContainer.innerHTML = `
+        <table class="standings-table">
+          <thead><tr><th class="number">Rank</th><th>Name</th><th class="number">Correct Picks</th><th class="number">Tiebreak Pick</th><th class="number">Point Difference</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
+    setMessage(ui.standingsMessage, `${summary.finalizedCount} of ${GAMES.length} games finalized.`, "success");
+  } catch (error) {
+    setMessage(ui.standingsMessage, error.message || "Unable to calculate standings.", "error");
+  }
+}
+
+async function fetchSeasonData() {
+  const [picksResponse, resultsResponse] = await Promise.all([
+    supabaseClient.from(APP_SETTINGS.tableName)
+      .select("display_name,email,picks,tiebreak,week_number")
+      .eq("season", APP_SETTINGS.season),
+    supabaseClient.from(APP_SETTINGS.resultsTableName)
+      .select("week_number,winners,actual_tiebreak")
+      .eq("season", APP_SETTINGS.season)
+      .order("week_number", { ascending: true })
+  ]);
+  if (picksResponse.error) throw picksResponse.error;
+  if (resultsResponse.error) throw resultsResponse.error;
+  return { picks: picksResponse.data || [], results: resultsResponse.data || [] };
+}
+
+async function loadSeasonWinners() {
+  setMessage(ui.seasonWinnersMessage, "Loading season winners...", "info");
+  try {
+    const season = await fetchSeasonData();
+    const completedWeeks = [];
+
+    season.results.forEach(result => {
+      const weekPicks = season.picks.filter(record => record.week_number === result.week_number);
+      if (!weekPicks.length) return;
+      const expectedGames = Math.max(...weekPicks.map(record => Object.keys(record.picks || {}).length));
+      const finalizedGames = Object.values(result.winners || {}).filter(Boolean).length;
+      if (!expectedGames || finalizedGames < expectedGames) return;
+
+      const summary = calculateStandings(weekPicks, result);
+      if (!summary.standings.length) return;
+      const first = summary.standings[0];
+      const champions = summary.standings.filter(entry =>
+        entry.correct === first.correct && entry.difference === first.difference
+      );
+      completedWeeks.push({ week: result.week_number, champions, correct: first.correct, difference: first.difference });
+    });
+
+    if (!completedWeeks.length) {
+      ui.seasonWinnersContainer.innerHTML = '<p style="padding:20px">No completed weekly winners yet.</p>';
+    } else {
+      ui.seasonWinnersContainer.innerHTML = `
+        <table class="standings-table">
+          <thead><tr><th class="number">Week</th><th>Weekly Winner</th><th class="number">Correct Picks</th><th class="number">Tiebreak Difference</th></tr></thead>
+          <tbody>${completedWeeks.map(item => `
+            <tr>
+              <td class="number">${item.week}</td>
+              <td>${item.champions.map(champion => escapeHtml(champion.name)).join(" &amp; ")}</td>
+              <td class="number">${item.correct}</td>
+              <td class="number">${item.difference ?? "—"}</td>
+            </tr>`).join("")}</tbody>
+        </table>`;
+    }
+    setMessage(ui.seasonWinnersMessage, `${completedWeeks.length} completed week${completedWeeks.length === 1 ? "" : "s"} listed.`, "success");
+  } catch (error) {
+    setMessage(ui.seasonWinnersMessage, error.message || "Unable to load season winners.", "error");
+  }
+}
+
+function switchPage(pageName) {
+  const pages = {
+    mine: ui.myPicksPage,
+    all: ui.allPicksPage,
+    standings: ui.standingsPage,
+    winners: ui.seasonWinnersPage,
+    results: ui.resultsPage
+  };
+  Object.entries(pages).forEach(([name, page]) => page.classList.toggle("hidden", name !== pageName));
+  ui.myPicksTab.classList.toggle("active", pageName === "mine");
+  ui.allPicksTab.classList.toggle("active", pageName === "all");
+  ui.standingsTab.classList.toggle("active", pageName === "standings");
+  ui.seasonWinnersTab.classList.toggle("active", pageName === "winners");
+  ui.resultsTab.classList.toggle("active", pageName === "results");
+  if (pageName === "all") loadAllPicks();
+  if (pageName === "standings") loadWeeklyStandings();
+  if (pageName === "winners") loadSeasonWinners();
+  if (pageName === "results") loadResultsForm();
+}
+
+const ui = {};
+
+window.addEventListener("DOMContentLoaded", initializeApp);
+
+async function initializeApp() {
+  cacheUi();
+  applySettingsToPage();
+  buildGames();
+  buildResultsForm();
+  attachEventListeners();
 
   try {
-    const results = await fetchOfficialResults();
+    const session = await getActiveSession();
 
-    for (const game of GAMES) {
-      const select = document.querySelector(
-        `[name="winner_${game.id}"]`
-      );
-
-      select.value =
-        results.winners?.[game.id] || "";
+    if (session) {
+      await showPicksView(session.user);
+    } else {
+      showLoginView();
     }
-
-    ui.actualTiebreak.value =
-      results.actual_tiebreak ?? "";
-
-    setMessage(
-      ui.resultsMessage,
-      "Official results loaded.",
-      "success"
-    );
   } catch (error) {
-    setMessage(
-      ui.resultsMessage,
-      error.message || "Unable to load results.",
-      "error"
-    );
+    console.error("Initialization error:", error);
+    showLoginView();
+    setMessage(ui.loginMessage, error.message || "Unable to start the application.", "error");
   }
+}
+
+function cacheUi() {
+  ui.loginView = getElement("loginView");
+  ui.picksView = getElement("picksView");
+  ui.loginForm = getElement("loginForm");
+  ui.picksForm = getElement("picksForm");
+  ui.email = getElement("email");
+  ui.password = getElement("password");
+  ui.loginButton = getElement("loginButton");
+  ui.logoutButton = getElement("logoutButton");
+  ui.submitButton = getElement("submitButton");
+  ui.exportButton = getElement("exportButton");
+  ui.loginMessage = getElement("loginMessage");
+  ui.pickMessage = getElement("pickMessage");
+  ui.userDisplay = getElement("userDisplay");
+  ui.myPicksPage = getElement("myPicksPage");
+  ui.allPicksPage = getElement("allPicksPage");
+  ui.resultsPage = getElement("resultsPage");
+  ui.standingsPage = getElement("standingsPage");
+  ui.seasonWinnersPage = getElement("seasonWinnersPage");
+  ui.myPicksTab = getElement("myPicksTab");
+  ui.allPicksTab = getElement("allPicksTab");
+  ui.resultsTab = getElement("resultsTab");
+  ui.standingsTab = getElement("standingsTab");
+  ui.seasonWinnersTab = getElement("seasonWinnersTab");
+  ui.refreshBoardButton = getElement("refreshBoardButton");
+  ui.exportAllButton = getElement("exportAllButton");
+  ui.allPicksMessage = getElement("allPicksMessage");
+  ui.resultsForm = getElement("resultsForm");
+  ui.resultsMessage = getElement("resultsMessage");
+  ui.saveResultsButton = getElement("saveResultsButton");
+  ui.actualTiebreak = getElement("actualTiebreak");
+  ui.standingsWeek = getElement("standingsWeek");
+  ui.standingsMessage = getElement("standingsMessage");
+  ui.standingsContainer = getElement("standingsContainer");
+  ui.refreshStandingsButton = getElement("refreshStandingsButton");
+  ui.winnersSeason = getElement("winnersSeason");
+  ui.seasonWinnersMessage = getElement("seasonWinnersMessage");
+  ui.seasonWinnersContainer = getElement("seasonWinnersContainer");
+  ui.refreshWinnersButton = getElement("refreshWinnersButton");
+}
+
+function attachEventListeners() {
+  ui.loginForm.addEventListener("submit", handleLogin);
+  ui.logoutButton.addEventListener("click", handleLogout);
+  ui.picksForm.addEventListener("submit", handleSubmitPicks);
+  ui.exportButton.addEventListener("click", handleExportPicks);
+  ui.myPicksTab.addEventListener("click", () => switchPage("mine"));
+  ui.allPicksTab.addEventListener("click", () => switchPage("all"));
+  ui.resultsTab.addEventListener("click", () => switchPage("results"));
+  ui.standingsTab.addEventListener("click", () => switchPage("standings"));
+  ui.seasonWinnersTab.addEventListener("click", () => switchPage("winners"));
+  ui.refreshBoardButton.addEventListener("click", loadAllPicks);
+  ui.exportAllButton.addEventListener("click", exportAllPicks);
+  ui.resultsForm.addEventListener("submit", handleSaveResults);
+  ui.refreshStandingsButton.addEventListener("click", loadWeeklyStandings);
+  ui.refreshWinnersButton.addEventListener("click", loadSeasonWinners);
+}
+
+function applySettingsToPage() {
+  getElement("seasonDisplay").textContent = APP_SETTINGS.season;
+  getElement("weekDisplay").textContent = APP_SETTINGS.weekNumber;
+  getElement("tiebreak").max = APP_SETTINGS.maxTiebreakPoints;
+  getElement("standingsWeek").textContent = APP_SETTINGS.weekNumber;
+  getElement("winnersSeason").textContent = APP_SETTINGS.season;
+}
+
+function showLoginView() {
+  ui.loginView.classList.remove("hidden");
+  ui.picksView.classList.add("hidden");
+  switchPage("mine");
+  ui.password.value = "";
+  ui.email.focus();
+}
+
+async function showPicksView(user) {
+  ui.loginView.classList.add("hidden");
+  ui.picksView.classList.remove("hidden");
+  ui.userDisplay.textContent = user.user_metadata?.full_name || user.email || "Signed-in user";
+  setMessage(ui.loginMessage);
+
+  try {
+    const role = await fetchMyRole(user.id);
+    ui.resultsTab.classList.toggle("hidden", role !== "admin");
+  } catch (error) {
+    console.error("Role lookup error:", error);
+    ui.resultsTab.classList.add("hidden");
+  }
+
+  await loadSavedPicks();
 }
 
 async function handleSaveResults(event) {
   event.preventDefault();
-
+  setButtonBusy(ui.saveResultsButton, true, "Saving Winners...");
   setMessage(ui.resultsMessage);
-
-  setBusy(
-    ui.saveResultsButton,
-    true,
-    "Saving Winners..."
-  );
-
   try {
-    const user = await getCurrentUser();
-    const winners = {};
-
-    for (const game of GAMES) {
-      winners[game.id] =
-        document.querySelector(
-          `[name="winner_${game.id}"]`
-        ).value || null;
-    }
-
-    const actualValue =
-      ui.actualTiebreak.value.trim();
-
-    if (actualValue !== "") {
-      const number = Number(actualValue);
-
-      if (
-        !Number.isInteger(number) ||
-        number < 0 ||
-        number > 200
-      ) {
-        throw new Error(
-          "The actual tiebreaker must be from 0 to 200."
-        );
-      }
-    }
-
-    const {error} = await supabaseClient
-      .from(SETTINGS.resultsTable)
-      .upsert(
-        {
-          season:SETTINGS.season,
-          week_number:SETTINGS.week,
-          winners,
-          actual_tiebreak:
-            actualValue === ""
-              ? null
-              : Number(actualValue),
-          updated_by:user.id,
-          updated_at:new Date().toISOString()
-        },
-        {
-          onConflict:"season,week_number"
-        }
-      );
-
-    if (error) {
-      throw error;
-    }
-
-    setMessage(
-      ui.resultsMessage,
-      "Official winners were saved.",
-      "success"
-    );
+    await saveOfficialResults();
+    setMessage(ui.resultsMessage, "Official winners were saved. The weekly board is updated.", "success");
   } catch (error) {
-    setMessage(
-      ui.resultsMessage,
-      error.message || "Unable to save winners.",
-      "error"
-    );
+    console.error("Save results error:", error);
+    setMessage(ui.resultsMessage, error.message || "Unable to save official winners.", "error");
   } finally {
-    setBusy(ui.saveResultsButton,false);
+    setButtonBusy(ui.saveResultsButton, false);
   }
 }
 
-async function exportMyPicks() {
-  setMessage(ui.pickMessage);
+async function handleLogin(event) {
+  event.preventDefault();
+  setMessage(ui.loginMessage);
 
-  setBusy(
-    ui.exportButton,
-    true,
-    "Creating CSV..."
-  );
+  const email = ui.email.value.trim();
+  const password = ui.password.value;
+
+  if (!email || !password) {
+    setMessage(ui.loginMessage, "Enter both your email and password.", "error");
+    return;
+  }
+
+  setButtonBusy(ui.loginButton, true, "Signing In...");
+
+  try {
+    const user = await loginUser(email, password);
+    await showPicksView(user);
+  } catch (error) {
+    console.error("Login error:", error);
+    setMessage(ui.loginMessage, error.message || "Unable to sign in.", "error");
+  } finally {
+    setButtonBusy(ui.loginButton, false);
+  }
+}
+
+async function handleLogout() {
+  setButtonBusy(ui.logoutButton, true, "Signing Out...");
+
+  try {
+    await logoutUser();
+    applySavedPicks(null);
+    setMessage(ui.pickMessage);
+    showLoginView();
+  } catch (error) {
+    console.error("Logout error:", error);
+    setMessage(ui.pickMessage, error.message || "Unable to sign out.", "error");
+  } finally {
+    setButtonBusy(ui.logoutButton, false);
+  }
+}
+
+async function loadSavedPicks() {
+  setMessage(ui.pickMessage, "Loading your saved picks...", "info");
 
   try {
     const record = await fetchMyPicks();
-
-    if (!record) {
-      throw new Error(
-        "Save your picks before exporting."
-      );
-    }
-
-    const rows = [
-      ["Season","Week","Game","Away","Home","Pick"]
-    ];
-
-    GAMES.forEach(game => {
-      rows.push([
-        record.season,
-        record.week_number,
-        game.id,
-        game.away,
-        game.home,
-        record.picks?.[game.id]?.pick || ""
-      ]);
-    });
-
-    rows.push([]);
-    rows.push(["Tiebreaker",record.tiebreak]);
-
-    downloadCsv(
-      `NFL_Picks_${record.season}_Week_${record.week_number}.csv`,
-      rows
-    );
+    applySavedPicks(record);
 
     setMessage(
       ui.pickMessage,
-      "Your CSV export was created.",
-      "success"
+      record ? "Your saved picks were loaded." : "No picks are saved yet for this week.",
+      record ? "success" : "info"
     );
   } catch (error) {
-    setMessage(
-      ui.pickMessage,
-      error.message || "Unable to export picks.",
-      "error"
-    );
+    console.error("Load picks error:", error);
+    setMessage(ui.pickMessage, error.message || "Unable to load your picks.", "error");
+  }
+}
+
+async function handleSubmitPicks(event) {
+  event.preventDefault();
+  setMessage(ui.pickMessage);
+  setButtonBusy(ui.submitButton, true, "Saving Picks...");
+
+  try {
+    await saveMyPicks();
+    setMessage(ui.pickMessage, "Your picks were saved successfully.", "success");
+  } catch (error) {
+    console.error("Save picks error:", error);
+    setMessage(ui.pickMessage, error.message || "Unable to save your picks.", "error");
   } finally {
-    setBusy(ui.exportButton,false);
+    setButtonBusy(ui.submitButton, false);
+  }
+}
+
+async function handleExportPicks() {
+  setMessage(ui.pickMessage);
+  setButtonBusy(ui.exportButton, true, "Preparing Export...");
+
+  try {
+    const record = await fetchMyPicks();
+    exportPicksToCsv(record);
+    setMessage(ui.pickMessage, "Your CSV export has been created.", "success");
+  } catch (error) {
+    console.error("Export picks error:", error);
+    setMessage(ui.pickMessage, error.message || "Unable to export your picks.", "error");
+  } finally {
+    setButtonBusy(ui.exportButton, false);
   }
 }
 
 async function exportAllPicks() {
   setMessage(ui.allPicksMessage);
-
-  setBusy(
-    ui.exportAllButton,
-    true,
-    "Creating Export..."
-  );
+  setButtonBusy(ui.exportAllButton, true, "Creating Export...");
 
   try {
-    const [records,results] = await Promise.all([
-      fetchEveryonePicks(),
-      fetchOfficialResults()
-    ]);
+    const [records, results] = await Promise.all([fetchAllPicks(), fetchResults()]);
+    if (!records.length) throw new Error("There are no submitted picks to export.");
 
-    if (!records.length) {
-      throw new Error(
-        "There are no submitted picks to export."
-      );
-    }
-
-    const winners =
-      results.winners || {};
-
+    const winners = results?.winners || {};
     const rows = [[
-      "Name",
-      "Email",
-      ...GAMES.map(game =>
-        `Game ${game.id}: ${game.away} @ ${game.home}`
-      ),
-      ...GAMES.map(game =>
-        `Game ${game.id} Winner`
-      ),
-      "Correct Picks",
-      "Games Completed",
-      "Tiebreaker Pick",
-      "Actual Tiebreaker",
-      "Submitted At"
+      "Name", "Email",
+      ...GAMES.map(game => `Game ${game.id}: ${game.away} @ ${game.home}`),
+      ...GAMES.map(game => `Game ${game.id} Winner`),
+      "Correct Picks", "Games Completed", "Tiebreaker Pick",
+      "Actual Tiebreaker", "Submitted At"
     ]];
 
     records.forEach(record => {
       let correct = 0;
       let completed = 0;
-
       const playerPicks = GAMES.map(game => {
-        const pick =
-          record.picks?.[game.id]?.pick || "";
-
-        const winner =
-          winners[game.id] || "";
-
+        const pick = record.picks?.[game.id]?.pick || "";
+        const winner = winners[game.id] || "";
         if (winner) {
-          completed++;
-
-          if (pick === winner) {
-            correct++;
-          }
+          completed += 1;
+          if (pick === winner) correct += 1;
         }
-
         return pick;
       });
 
-      const officialWinners =
-        GAMES.map(game =>
-          winners[game.id] || ""
-        );
-
       rows.push([
-        record.display_name ||
-          record.email ||
-          "Unknown",
-
+        record.display_name || record.email || "Unknown",
         record.email || "",
-
         ...playerPicks,
-        ...officialWinners,
-
+        ...GAMES.map(game => winners[game.id] || ""),
         correct,
         completed,
-
         record.tiebreak ?? "",
-        results.actual_tiebreak ?? "",
-
-        record.submitted_at
-          ? new Date(record.submitted_at)
-              .toLocaleString()
-          : ""
+        results?.actual_tiebreak ?? "",
+        record.submitted_at ? new Date(record.submitted_at).toLocaleString() : ""
       ]);
     });
 
-    downloadCsv(
-      `All_NFL_Picks_${SETTINGS.season}_Week_${SETTINGS.week}.csv`,
-      rows
+    const csv = rows.map(row => row.map(csvEscape).join(",")).join("\n");
+    downloadTextFile(
+      `all_nfl_picks_${APP_SETTINGS.season}_week_${APP_SETTINGS.weekNumber}.csv`,
+      csv,
+      "text/csv;charset=utf-8"
     );
-
-    setMessage(
-      ui.allPicksMessage,
-      `${records.length} participant records were exported.`,
-      "success"
-    );
+    setMessage(ui.allPicksMessage, `${records.length} participant records were exported.`, "success");
   } catch (error) {
-    setMessage(
-      ui.allPicksMessage,
-      error.message || "Unable to export all picks.",
-      "error"
-    );
+    console.error("Export all picks error:", error);
+    setMessage(ui.allPicksMessage, error.message || "Unable to export all picks.", "error");
   } finally {
-    setBusy(ui.exportAllButton,false);
+    setButtonBusy(ui.exportAllButton, false);
   }
 }
 
-function downloadCsv(filename,rows) {
-  const csv = rows
-    .map(row =>
-      row.map(csvValue).join(",")
-    )
-    .join("\n");
-
-  const blob = new Blob(
-    [csv],
-    {
-      type:"text/csv;charset=utf-8"
-    }
-  );
-
-  const url =
-    URL.createObjectURL(blob);
-
-  const link =
-    document.createElement("a");
-
-  link.href = url;
-  link.download = filename;
-
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  window.setTimeout(
-    () => URL.revokeObjectURL(url),
-    0
-  );
-}
-
-function csvValue(value) {
-  const text =
-    String(value ?? "");
-
-  return /[",\n]/.test(text)
-    ? `"${text.replaceAll('"','""')}"`
-    : text;
-}
-</script>
+  </script>
 </body>
 </html>
