@@ -506,6 +506,7 @@ input:focus {
   color: #fecdd3;
 }
 
+.pick-tie { background: rgba(148,163,184,.24); color: #e2e8f0; font-weight: 750; }
 .winner-badge {
   display: inline-block;
   margin-top: 5px;
@@ -1169,6 +1170,7 @@ function buildResultsForm() {
         <option value="">Not final</option>
         <option value="${game.away}">${game.away}</option>
         <option value="${game.home}">${game.home}</option>
+        <option value="TIE">TIE (no winner)</option>
       </select>
     </label>
   `).join("");
@@ -1231,7 +1233,7 @@ function renderAllPicks(records, results) {
     const cells = GAMES.map(game => {
       const pick = record.picks?.[game.id]?.pick || "—";
       const winner = winners[game.id];
-      const resultClass = winner ? (pick === winner ? "pick-correct" : "pick-wrong") : "";
+      const resultClass = winner === "TIE" ? "pick-tie" : winner ? (pick === winner ? "pick-correct" : "pick-wrong") : "";
       return `<td class="${resultClass}" title="${pick}">${shortTeam(pick)}</td>`;
     }).join("");
     const name = record.display_name || record.email || "Unknown";
@@ -1243,7 +1245,7 @@ function renderAllPicks(records, results) {
       <thead><tr><th>Player</th>${gameHeaders}<th>Tiebreak</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    ${hasAnyWinner ? '<p style="padding:0 14px 14px;color:var(--text-muted)">Green = correct pick. Red = incorrect pick.</p>' : ""}`;
+    ${hasAnyWinner ? '<p style="padding:0 14px 14px;color:var(--text-muted)">Green = correct pick. Red = incorrect pick. Gray = tied game (no points awarded).</p>' : ""}`;
 }
 
 async function loadAllPicks() {
@@ -1304,7 +1306,7 @@ function calculateStandings(records, results) {
   const finalizedIds = Object.keys(winners).filter(id => Boolean(winners[id]));
 
   const standings = records.map(record => {
-    const correct = finalizedIds.reduce((total, gameId) => {
+    const correct = finalizedIds.filter(id => winners[id] !== "TIE").reduce((total, gameId) => {
       return total + (record.picks?.[gameId]?.pick === winners[gameId] ? 1 : 0);
     }, 0);
     const difference = actual === null || actual === undefined || record.tiebreak === null
