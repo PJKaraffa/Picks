@@ -760,6 +760,7 @@ input:focus {
           <div class="board-actions">
             <button id="refreshBoardButton" class="button button-secondary" type="button">Refresh</button>
             <button id="exportAllButton" class="button button-primary" type="button">Export All Picks</button>
+            <button id="exportComparisonButton" class="button button-secondary" type="button">Export Picks Comparison</button>
           </div>
         </div>
         <div id="allPicksMessage" class="message message-panel" role="status" aria-live="polite"></div>
@@ -1498,6 +1499,7 @@ function cacheUi() {
   ui.seasonWinnersTab = getElement("seasonWinnersTab");
   ui.refreshBoardButton = getElement("refreshBoardButton");
   ui.exportAllButton = getElement("exportAllButton");
+  ui.exportComparisonButton = getElement("exportComparisonButton");
   ui.allPicksMessage = getElement("allPicksMessage");
   ui.resultsForm = getElement("resultsForm");
   ui.resultsMessage = getElement("resultsMessage");
@@ -1525,6 +1527,7 @@ function attachEventListeners() {
   ui.seasonWinnersTab.addEventListener("click", () => switchPage("winners"));
   ui.refreshBoardButton.addEventListener("click", loadAllPicks);
   ui.exportAllButton.addEventListener("click", exportAllPicks);
+  ui.exportComparisonButton.addEventListener("click", exportPicksComparison);
   ui.resultsForm.addEventListener("submit", handleSaveResults);
   ui.refreshStandingsButton.addEventListener("click", loadWeeklyStandings);
   ui.refreshWinnersButton.addEventListener("click", loadSeasonWinners);
@@ -1724,6 +1727,37 @@ async function exportAllPicks() {
     setMessage(ui.allPicksMessage, error.message || "Unable to export all picks.", "error");
   } finally {
     setButtonBusy(ui.exportAllButton, false);
+  }
+}
+
+
+async function exportPicksComparison() {
+  setMessage(ui.allPicksMessage);
+  setButtonBusy(ui.exportComparisonButton, true, "Creating Comparison...");
+  try {
+    const records = await fetchAllPicks();
+    if (!records.length) throw new Error("There are no submitted picks to export.");
+
+    // Include every submitted player, with a game on each row.
+    const rows = [["Name", ...records.map(record => record.email || record.display_name || "Unknown")]];
+    for (const game of GAMES) {
+      rows.push([
+        `Game ${game.id}: ${game.away} @ ${game.home}`,
+        ...records.map(record => record.picks?.[game.id]?.pick || "")
+      ]);
+    }
+    const csv = "\uFEFF" + rows.map(row => row.map(csvEscape).join(",")).join("\r\n");
+    downloadTextFile(
+      `nfl_picks_comparison_${APP_SETTINGS.season}_week_${APP_SETTINGS.weekNumber}.csv`,
+      csv,
+      "text/csv;charset=utf-8"
+    );
+    setMessage(ui.allPicksMessage, `Comparison exported for ${records.length} players.`, "success");
+  } catch (error) {
+    console.error("Comparison export error:", error);
+    setMessage(ui.allPicksMessage, error.message || "Unable to export picks comparison.", "error");
+  } finally {
+    setButtonBusy(ui.exportComparisonButton, false);
   }
 }
 
