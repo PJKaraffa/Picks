@@ -760,7 +760,6 @@ input:focus {
           <div class="board-actions">
             <button id="refreshBoardButton" class="button button-secondary" type="button">Refresh</button>
             <button id="exportAllButton" class="button button-primary" type="button">Export All Picks</button>
-            <button id="exportComparisonButton" class="button button-secondary" type="button">Export Picks Comparison</button>
           </div>
         </div>
         <div id="allPicksMessage" class="message message-panel" role="status" aria-live="polite"></div>
@@ -826,7 +825,7 @@ const supabaseClient = window.supabase.createClient(
 
 const APP_SETTINGS = Object.freeze({
   season: 2026,
-  weekNumber: 5,
+  weekNumber: 6,
   tableName: "weekly_picks",
   resultsTableName: "weekly_results",
   profilesTableName: "profiles",
@@ -835,21 +834,20 @@ const APP_SETTINGS = Object.freeze({
 
 
 const GAMES = Object.freeze([
-  { id: 1, away: "Tampa Bay", home: "Dallas" },
-  { id: 2, away: "Philadelphia", home: "Jacksonville" },
-  { id: 3, away: "Chicago", home: "Green Bay" },
-  { id: 4, away: "Houston", home: "Tennessee" },
-  { id: 5, away: "Cincinnati", home: "Miami" },
-  { id: 6, away: "Las Vegas", home: "New England" },
-  { id: 7, away: "Minnesota", home: "New Orleans" },
-  { id: 8, away: "Cleveland", home: "Jets" },
-  { id: 9, away: "Indianapolis", home: "Pittsburgh" },
-  { id: 10, away: "Giants", home: "Washington" },
-  { id: 11, away: "Denver", home: "Chargers" },
-  { id: 12, away: "Detroit", home: "Arizona" },
-  { id: 13, away: "San Francisco", home: "Seattle" },
-  { id: 14, away: "Baltimore", home: "Atlanta" },
-  { id: 15, away: "Buffalo", home: "Rams" },
+  { id: 1, away: "Seattle", home: "Denver" },
+  { id: 2, away: "Houston", home: "Jacksonville" },
+  { id: 3, away: "Chicago", home: "Atlanta" },
+  { id: 4, away: "Baltimore", home: "Cleveland" },
+  { id: 5, away: "Tennessee", home: "Indianapolis" },
+  { id: 6, away: "Jets", home: "New England" },
+  { id: 7, away: "New Orleans", home: "Giants" },
+  { id: 8, away: "Carolina", home: "Philadelphia" },
+  { id: 9, away: "Pittsburgh", home: "Tampa Bay" },
+  { id: 10, away: "Arizona", home: "Rams" },
+  { id: 11, away: "Chargers", home: "Kansas City" },
+  { id: 12, away: "Buffalo", home: "Las Vegas" },
+  { id: 13, away: "Dallas", home: "Green Bay" },
+  { id: 14, away: "Washington", home: "San Francisco" },
 ]);
 
 
@@ -1500,7 +1498,6 @@ function cacheUi() {
   ui.seasonWinnersTab = getElement("seasonWinnersTab");
   ui.refreshBoardButton = getElement("refreshBoardButton");
   ui.exportAllButton = getElement("exportAllButton");
-  ui.exportComparisonButton = getElement("exportComparisonButton");
   ui.allPicksMessage = getElement("allPicksMessage");
   ui.resultsForm = getElement("resultsForm");
   ui.resultsMessage = getElement("resultsMessage");
@@ -1528,7 +1525,6 @@ function attachEventListeners() {
   ui.seasonWinnersTab.addEventListener("click", () => switchPage("winners"));
   ui.refreshBoardButton.addEventListener("click", loadAllPicks);
   ui.exportAllButton.addEventListener("click", exportAllPicks);
-  ui.exportComparisonButton.addEventListener("click", exportPicksComparison);
   ui.resultsForm.addEventListener("submit", handleSaveResults);
   ui.refreshStandingsButton.addEventListener("click", loadWeeklyStandings);
   ui.refreshWinnersButton.addEventListener("click", loadSeasonWinners);
@@ -1670,50 +1666,6 @@ async function handleExportPicks() {
     setMessage(ui.pickMessage, error.message || "Unable to export your picks.", "error");
   } finally {
     setButtonBusy(ui.exportButton, false);
-  }
-}
-
-async function exportPicksComparison() {
-  setMessage(ui.allPicksMessage);
-  setButtonBusy(ui.exportComparisonButton, true, "Creating Comparison...");
-  try {
-    const records = await fetchAllPicks();
-    if (!records.length) throw new Error("There are no submitted picks to export.");
-
-    // Build the game list from the stored JSON, rather than hardcoding this week's schedule.
-    const games = new Map();
-    for (const record of records) {
-      for (const [key, game] of Object.entries(record.picks || {})) {
-        if (!/^\d+$/.test(key) || !game || typeof game !== "object") continue;
-        const number = Number(key);
-        if (!games.has(number) || (!games.get(number).away && game.away)) {
-          games.set(number, { away: game.away || "", home: game.home || "" });
-        }
-      }
-    }
-    const gameNumbers = [...games.keys()].sort((a, b) => a - b);
-    if (!gameNumbers.length) throw new Error("No game picks were found for this week.");
-
-    const rows = [["Name", ...records.map(r => r.email || r.display_name || "Unknown")]];
-    for (const number of gameNumbers) {
-      const game = games.get(number);
-      rows.push([
-        `Game ${number}: ${game.away} @ ${game.home}`,
-        ...records.map(r => r.picks?.[String(number)]?.pick || "")
-      ]);
-    }
-    const csv = "\uFEFF" + rows.map(row => row.map(csvEscape).join(",")).join("\r\n");
-    downloadTextFile(
-      `nfl_picks_comparison_${APP_SETTINGS.season}_week_${APP_SETTINGS.weekNumber}.csv`,
-      csv,
-      "text/csv;charset=utf-8"
-    );
-    setMessage(ui.allPicksMessage, `Comparison exported: ${gameNumbers.length} games and ${records.length} players.`, "success");
-  } catch (error) {
-    console.error("Comparison export error:", error);
-    setMessage(ui.allPicksMessage, error.message || "Unable to export comparison.", "error");
-  } finally {
-    setButtonBusy(ui.exportComparisonButton, false);
   }
 }
 
