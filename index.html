@@ -826,30 +826,32 @@ const supabaseClient = window.supabase.createClient(
 
 const APP_SETTINGS = Object.freeze({
   season: 2026,
-  weekNumber: 7,
+  weekNumber: 6,
   tableName: "weekly_picks",
   resultsTableName: "weekly_results",
   profilesTableName: "profiles",
   maxTiebreakPoints: 200
 });
 
+
 const GAMES = Object.freeze([
-  { id: 1, away: "New England", home: "Chicago" },
-  { id: 2, away: "Pittsburgh", home: "New Orleans" },
-  { id: 3, away: "San Francisco", home: "Atlanta" },
-  { id: 4, away: "Cleveland", home: "Tennessee" },
-  { id: 5, away: "Indianapolis", home: "Minnesota" },
-  { id: 6, away: "Miami", home: "Jets" },
-  { id: 7, away: "Tampa Bay", home: "Carolina" },
-  { id: 8, away: "Cincinnati", home: "Baltimore" },
-  { id: 9, away: "Giants", home: "Houston" },
-  { id: 10, away: "Denver", home: "Arizona" },
-  { id: 11, away: "Green Bay", home: "Detroit" },
-  { id: 12, away: "Rams", home: "Las Vegas" },
-  { id: 13, away: "Kansas City", home: "Seattle" },
-  { id: 14, away: "Dallas", home: "Philadelphia" },
+  { id: 1, away: "Seattle", home: "Denver" },
+  { id: 2, away: "Houston", home: "Jacksonville" },
+  { id: 3, away: "Chicago", home: "Atlanta" },
+  { id: 4, away: "Baltimore", home: "Cleveland" },
+  { id: 5, away: "Tennessee", home: "Indianapolis" },
+  { id: 6, away: "Jets", home: "New England" },
+  { id: 7, away: "New Orleans", home: "Giants" },
+  { id: 8, away: "Carolina", home: "Philadelphia" },
+  { id: 9, away: "Pittsburgh", home: "Tampa Bay" },
+  { id: 10, away: "Arizona", home: "Rams" },
+  { id: 11, away: "Chargers", home: "Kansas City" },
+  { id: 12, away: "Buffalo", home: "Las Vegas" },
+  { id: 13, away: "Dallas", home: "Green Bay" },
+  { id: 14, away: "Washington", home: "San Francisco" },
 ]);
-    
+
+
 function getElement(id) {
   const element = document.getElementById(id);
 
@@ -1407,6 +1409,22 @@ async function loadSeasonWinners() {
     if (!completedWeeks.length) {
       ui.seasonWinnersContainer.innerHTML = '<p style="padding:20px">No completed weekly winners yet.</p>';
     } else {
+      // Count one victory per completed week for every co-winner.
+      const winCounts = new Map();
+      completedWeeks.forEach(item => {
+        item.champions.forEach(champion => {
+          const key = (champion.email || champion.name).trim().toLowerCase();
+          const existing = winCounts.get(key);
+          if (existing) {
+            existing.wins += 1;
+          } else {
+            winCounts.set(key, { name: champion.name, email: champion.email, wins: 1 });
+          }
+        });
+      });
+      const leaderboard = [...winCounts.values()].sort((a, b) =>
+        b.wins - a.wins || a.name.localeCompare(b.name)
+      );
       ui.seasonWinnersContainer.innerHTML = `
         <table class="standings-table">
           <thead><tr><th class="number">Week</th><th>Weekly Winner</th><th class="number">Correct Picks</th><th class="number">Tiebreak Difference</th></tr></thead>
@@ -1416,6 +1434,20 @@ async function loadSeasonWinners() {
               <td>${item.champions.map(champion => escapeHtml(champion.name)).join(" &amp; ")}</td>
               <td class="number">${item.correct}</td>
               <td class="number">${item.difference ?? "—"}</td>
+            </tr>`).join("")}</tbody>
+        </table>
+        <div style="padding:22px 16px 12px;border-top:1px solid var(--border)">
+          <p class="eyebrow">Season ${APP_SETTINGS.season}</p>
+          <h2 style="margin-bottom:8px">Season Wins Leaderboard</h2>
+          <p class="subtitle" style="margin-bottom:0">Weekly victories across ${completedWeeks.length} completed weeks. Shared winners each receive one win.</p>
+        </div>
+        <table class="standings-table">
+          <thead><tr><th class="number">Rank</th><th>Player</th><th class="number">Weeks Won</th></tr></thead>
+          <tbody>${leaderboard.map((player, index) => `
+            <tr class="${index === 0 ? "first-place" : ""}">
+              <td class="number">${1 + leaderboard.filter(p => p.wins > player.wins).length}</td>
+              <td>${escapeHtml(player.email || player.name)}</td>
+              <td class="number">${player.wins}</td>
             </tr>`).join("")}</tbody>
         </table>`;
     }
