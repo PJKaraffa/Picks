@@ -826,31 +826,29 @@ const supabaseClient = window.supabase.createClient(
 
 const APP_SETTINGS = Object.freeze({
   season: 2026,
-  weekNumber: 6,
+  weekNumber: 7,
   tableName: "weekly_picks",
   resultsTableName: "weekly_results",
   profilesTableName: "profiles",
   maxTiebreakPoints: 200
 });
 
-
 const GAMES = Object.freeze([
-  { id: 1, away: "Seattle", home: "Denver" },
-  { id: 2, away: "Houston", home: "Jacksonville" },
-  { id: 3, away: "Chicago", home: "Atlanta" },
-  { id: 4, away: "Baltimore", home: "Cleveland" },
-  { id: 5, away: "Tennessee", home: "Indianapolis" },
-  { id: 6, away: "Jets", home: "New England" },
-  { id: 7, away: "New Orleans", home: "Giants" },
-  { id: 8, away: "Carolina", home: "Philadelphia" },
-  { id: 9, away: "Pittsburgh", home: "Tampa Bay" },
-  { id: 10, away: "Arizona", home: "Rams" },
-  { id: 11, away: "Chargers", home: "Kansas City" },
-  { id: 12, away: "Buffalo", home: "Las Vegas" },
-  { id: 13, away: "Dallas", home: "Green Bay" },
-  { id: 14, away: "Washington", home: "San Francisco" },
+  { id: 1, away: "New England", home: "Chicago" },
+  { id: 2, away: "Pittsburgh", home: "New Orleans" },
+  { id: 3, away: "San Francisco", home: "Atlanta" },
+  { id: 4, away: "Cleveland", home: "Tennessee" },
+  { id: 5, away: "Indianapolis", home: "Minnesota" },
+  { id: 6, away: "Miami", home: "Jets" },
+  { id: 7, away: "Tampa Bay", home: "Carolina" },
+  { id: 8, away: "Cincinnati", home: "Baltimore" },
+  { id: 9, away: "Giants", home: "Houston" },
+  { id: 10, away: "Denver", home: "Arizona" },
+  { id: 11, away: "Green Bay", home: "Detroit" },
+  { id: 12, away: "Rams", home: "Las Vegas" },
+  { id: 13, away: "Kansas City", home: "Seattle" },
+  { id: 14, away: "Dallas", home: "Philadelphia" },
 ]);
-
 
 function getElement(id) {
   const element = document.getElementById(id);
